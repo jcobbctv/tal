@@ -4,8 +4,9 @@ require.def('antie/declui/typebinding',
         "antie/widgets/label",
         "antie/widgets/button",
         "antie/widgets/verticallist",
+        "antie/widgets/horizontallist"
     ],
-    function(Class, Label, Button, VerticalList ) {
+    function(Class, Label, Button, VerticalList, HorizontalList ) {
 
         var rootWidget  = null;
         var TypeBinding = {};
@@ -15,7 +16,7 @@ require.def('antie/declui/typebinding',
         };
 
         TypeBinding.initBinding = function(){
-            ko.bindingHandlers.taltype = {
+            ko.bindingHandlers.type = {
                 init : function( elem, valueAccessor ){
                     switch( valueAccessor() ){
                         case "label":
@@ -36,6 +37,10 @@ require.def('antie/declui/typebinding',
 
                         case "verticallist":
                             elem.talWidget = new VerticalList( elem.id );
+                            break;
+
+                        case "horizontallist":
+                            elem.talWidget = new HorizontalList( elem.id );
                             break;
                     }
 

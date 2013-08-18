@@ -6,24 +6,29 @@ require.def('antie/declui/textbinding',
 
         var TextBinding = {};
 
-        function bindText( elem, valueAccessor ){
+        function bindText( elem, valueUnwrapped ){
 
-            var valueUnwrapped = ko.unwrap(valueAccessor());
+            elem.innerText = valueUnwrapped;
             if( elem.talWidget ){
-                var i;
-                var childWidgets = elem.talWidget.getChildWidgets();
 
-                var textSet = false;
-                if( childWidgets ){
-                    for( i = 0; i < childWidgets.length; i++ ){
-                        if( childWidgets[ i ] instanceof Label ){
-                            childWidgets[ i ].setText( valueUnwrapped );
-                            textSet = true;
+                if( elem.talWidget instanceof Label ){
+                    elem.talWidget.setText( valueUnwrapped );
+                }else{
+                    var i;
+                    var childWidgets = elem.talWidget.getChildWidgets();
+
+                    var textSet = false;
+                    if( childWidgets ){
+                        for( i = 0; i < childWidgets.length; i++ ){
+                            if( childWidgets[ i ] instanceof Label ){
+                                childWidgets[ i ].setText( valueUnwrapped );
+                                textSet = true;
+                            }
                         }
                     }
-                }
-                if( !textSet ){
-                    elem.talWidget.appendChildWidget( new Label( valueUnwrapped ) )
+                    if( !textSet ){
+                        elem.talWidget.appendChildWidget( new Label( valueUnwrapped ) )
+                    }
                 }
             }
         }
@@ -31,10 +36,12 @@ require.def('antie/declui/textbinding',
         TextBinding.initBinding = function(){
             ko.bindingHandlers.text = {
                 init : function( elem, valueAccessor ){
-                   bindText( elem, valueAccessor );
+                    var valueUnwrapped = ko.unwrap( valueAccessor() );
+                    bindText( elem, valueUnwrapped );
                 },
                 update: function( elem, valueAccessor ){
-                    bindText( elem, valueAccessor );
+                    var valueUnwrapped = ko.unwrap( valueAccessor() );
+                    bindText( elem, valueUnwrapped );
                 }
             };
         }

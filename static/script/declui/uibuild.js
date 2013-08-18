@@ -17,15 +17,24 @@ require.def('antie/declui/uibuild',
         TextBinding.initBinding();
         SelectBinding.initBinding();
 
-        var UIBuild = {};
+        var UIBuild = { numKoDoms : 0 };
+
+        function getDomID(){
+            return "kodom" + UIBuild.numKoDoms;
+            UIBuild.numKoDoms++;
+        }
 
         UIBuild.createUI = function( rootWidget, dataModel, layout ){
             var layoutDom = device.createContainer();
+            layoutDom.style.display = "none";
             layoutDom.innerHTML = layout;
 
-            TypeBinding.setRootWidget( rootWidget );
+            document.body.appendChild( layoutDom );
 
+            TypeBinding.setRootWidget( rootWidget );
             ko.applyBindings( dataModel, layoutDom );
+
+            return layoutDom;
         }
 
         return UIBuild;
