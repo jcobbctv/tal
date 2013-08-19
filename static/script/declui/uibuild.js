@@ -17,12 +17,7 @@ require.def('antie/declui/uibuild',
         TextBinding.initBinding();
         SelectBinding.initBinding();
 
-        var UIBuild = { numKoDoms : 0 };
-
-        function getDomID(){
-            return "kodom" + UIBuild.numKoDoms;
-            UIBuild.numKoDoms++;
-        }
+        var UIBuild = {};
 
         UIBuild.createUI = function( rootWidget, dataModel, layout ){
             var layoutDom = device.createContainer();
