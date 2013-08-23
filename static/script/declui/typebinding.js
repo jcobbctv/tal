@@ -4,9 +4,11 @@ require.def('antie/declui/typebinding',
         "antie/widgets/label",
         "antie/widgets/button",
         "antie/widgets/verticallist",
-        "antie/widgets/horizontallist"
+        "antie/widgets/horizontallist",
+        "antie/widgets/horizontalcarousel",
+        "antie/widgets/image"
     ],
-    function(Class, Label, Button, VerticalList, HorizontalList ) {
+    function(Class, Label, Button, VerticalList, HorizontalList, HorizontalCarousel, Image ) {
 
         var rootWidget  = null;
         var TypeBinding = {};
@@ -17,8 +19,11 @@ require.def('antie/declui/typebinding',
 
         TypeBinding.initBinding = function(){
             ko.bindingHandlers.type = {
-                init : function( elem, valueAccessor ){
-                    switch( valueAccessor() ){
+                init : function( elem, valueAccessor, allBindingsAccessor ){
+
+                    var type = valueAccessor();
+
+                    switch( type ){
                         case "label":
                             if( elem.id ){
                                 elem.talWidget = new Label( elem.id, elem.innerText );
@@ -42,13 +47,35 @@ require.def('antie/declui/typebinding',
                         case "horizontallist":
                             elem.talWidget = new HorizontalList( elem.id );
                             break;
+
+                        case "image":
+                            var src = elem.getAttribute( "src" );
+                            var width = elem.getAttribute( "width" );
+                            var height = elem.getAttribute( "height" );
+                            elem.talWidget = new Image( elem.id, src, { width : width, height: height } );
+                            break;
+
+                        case "horizontalcarousel":
+                            elem.talWidget = new HorizontalCarousel( elem.id );
+                            //elem.talWidget.setWrapMode( HorizontalCarousel.WRAP_MODE_NONE );
+                            break;
                     }
+
+                    if( elem.talWidget && elem.className ){
+                        var classArray = elem.className.split(" ");
+                        for( var i = 0; i < classArray.length; i++ ){
+                            elem.talWidget.addClass( classArray[ i ] );
+                        }
+                    }
+
 
                     if( elem.parentElement && elem.parentElement.talWidget ){
                         elem.parentElement.talWidget.appendChildWidget( elem.talWidget );
                     }else{
                         rootWidget.appendChildWidget( elem.talWidget );
                     }
+
+                    return { controlsDescendantBindings: false };
                 }
             };
         };

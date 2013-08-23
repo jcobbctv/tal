@@ -7,10 +7,7 @@ require.def('antie/declui/textbinding',
         var TextBinding = {};
 
         function bindText( elem, valueUnwrapped ){
-
-            elem.innerText = valueUnwrapped;
             if( elem.talWidget ){
-
                 if( elem.talWidget instanceof Label ){
                     elem.talWidget.setText( valueUnwrapped );
                 }else{

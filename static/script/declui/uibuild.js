@@ -6,9 +6,10 @@ require.def('antie/declui/uibuild',
         "antie/devices/device",
         "antie/declui/typebinding",
         "antie/declui/textbinding",
-        "antie/declui/selectbinding"
+        "antie/declui/selectbinding",
+        "antie/declui/srcbinding"
     ],
-    function(Class, Application, Device, TypeBinding, TextBinding, SelectBinding ) {
+    function(Class, Application, Device, TypeBinding, TextBinding, SelectBinding, SrcBinding ) {
 
         var application = Application.getCurrentApplication();
         var device      = application.getDevice();
@@ -16,6 +17,7 @@ require.def('antie/declui/uibuild',
         TypeBinding.initBinding();
         TextBinding.initBinding();
         SelectBinding.initBinding();
+        SrcBinding.initBinding();
 
         var UIBuild = {};
 
