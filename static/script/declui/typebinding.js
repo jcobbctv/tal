@@ -23,6 +23,10 @@ require.def('antie/declui/typebinding',
 
                     var type = valueAccessor();
 
+                    var va = valueAccessor();
+                    var ab = allBindingsAccessor();
+                   // var bc = bindingContext;
+
                     switch( type ){
                         case "label":
                             if( elem.id ){
@@ -61,6 +65,13 @@ require.def('antie/declui/typebinding',
                             break;
                     }
 
+                    //if there is a foreach binding then unwrap to get update
+                    if( allBindingsAccessor().foreach ){
+                        ko.unwrap( allBindingsAccessor().foreach );
+                        console.log( "foreach found in init" );
+                    }
+
+                    //pass on class properties
                     if( elem.talWidget && elem.className ){
                         var classArray = elem.className.split(" ");
                         for( var i = 0; i < classArray.length; i++ ){
@@ -68,14 +79,11 @@ require.def('antie/declui/typebinding',
                         }
                     }
 
-
                     if( elem.parentElement && elem.parentElement.talWidget ){
                         elem.parentElement.talWidget.appendChildWidget( elem.talWidget );
                     }else{
                         rootWidget.appendChildWidget( elem.talWidget );
                     }
-
-                    return { controlsDescendantBindings: false };
                 }
             };
         };
