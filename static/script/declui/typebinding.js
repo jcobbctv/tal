@@ -19,13 +19,9 @@ require.def('antie/declui/typebinding',
 
         TypeBinding.initBinding = function(){
             ko.bindingHandlers.type = {
-                init : function( elem, valueAccessor, allBindingsAccessor ){
-
+                init : function( elem, valueAccessor, allBindingsAccessor, viewModel, bindingContext ){
                     var type = valueAccessor();
-
-                    var va = valueAccessor();
-                    var ab = allBindingsAccessor();
-                   // var bc = bindingContext;
+                    var allBindings = allBindingsAccessor();
 
                     switch( type ){
                         case "label":
@@ -65,12 +61,6 @@ require.def('antie/declui/typebinding',
                             break;
                     }
 
-                    //if there is a foreach binding then unwrap to get update
-                    if( allBindingsAccessor().foreach ){
-                        ko.unwrap( allBindingsAccessor().foreach );
-                        console.log( "foreach found in init" );
-                    }
-
                     //pass on class properties
                     if( elem.talWidget && elem.className ){
                         var classArray = elem.className.split(" ");
@@ -84,7 +74,7 @@ require.def('antie/declui/typebinding',
                     }else{
                         rootWidget.appendChildWidget( elem.talWidget );
                     }
-                }
+                },
             };
         };
         return TypeBinding;

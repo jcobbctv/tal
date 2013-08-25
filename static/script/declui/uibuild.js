@@ -8,7 +8,6 @@ require.def('antie/declui/uibuild',
         "antie/declui/textbinding",
         "antie/declui/selectbinding",
         "antie/declui/srcbinding",
-        "antie/declui/foreachbinding"
     ],
     function(Class, Application, Device, TypeBinding, TextBinding, SelectBinding, SrcBinding, ForeachBinding ) {
 
@@ -19,7 +18,6 @@ require.def('antie/declui/uibuild',
         TextBinding.initBinding();
         SelectBinding.initBinding();
         SrcBinding.initBinding();
-        ForeachBinding.initBinding();
 
         var UIBuild = {};
 
@@ -27,6 +25,14 @@ require.def('antie/declui/uibuild',
             var layoutDom = device.createContainer();
             layoutDom.style.display = "none";
             layoutDom.innerHTML = layout;
+
+            dataModel._tr = function( elem, index, removed ){
+                var talContainer = elem.parentElement.talWidget;
+                var talWidget = talContainer.getChildWidgets()[ index ];
+                talContainer.removeChildWidget( talWidget );
+                elem.parentElement.removeChild( elem );
+                console.log( elem );
+            }
 
             document.body.appendChild( layoutDom );
 
