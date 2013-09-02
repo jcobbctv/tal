@@ -109,6 +109,27 @@
         });
     };
 
+    this.ObservableTest.prototype.testSubscribeNotifyNotSentIfValueNoChanged = function(queue) {
+        expectAsserts(1);
+        queuedRequire(queue, ["antie/declui/observable","antie/class"], function(Observable, Class) {
+            var o = new Observable( 100 );
+
+            var notifiedContext = null;
+            var notifiedValue = null;
+
+            var cb0 = function( context, value ){
+                notifiedContext = context;
+                notifiedValue = value;
+            }
+            var cx0 = { x:1,y:2};
+
+            o.subscribe( cx0, cb0 );
+            o( 100 );
+
+            assertEquals( null, notifiedContext );
+        });
+    };
+
     this.ObservableTest.prototype.testSubscribeWithoutContextButCallbackNotifiesWithUndefinedContextButCorrectValue = function(queue) {
         expectAsserts(2);
         queuedRequire(queue, ["antie/declui/observable","antie/class"], function(Observable, Class) {
