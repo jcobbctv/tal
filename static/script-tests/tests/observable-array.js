@@ -17,55 +17,114 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- * 
+ *
  * All rights reserved
  * Please contact us for an alternative licence
  */
 
-(function() {
-	this.ObservableArrayTest = AsyncTestCase("ObservableArray");
+(function () {
 
-	this.ObservableArrayTest.prototype.setUp = function() {
-	};
+    require( ["antie/declui/observable-array"], function(ObservableArray){
+        this.ObservableArrayTest = TestCase("ObservableArray");
 
-	this.ObservableArrayTest.prototype.tearDown = function() {
-	};
+        this.ObservableArrayTest.prototype.setUp = function () {
+        };
+
+        this.ObservableArrayTest.prototype.tearDown = function () {
+        };
 
 
-    this.ObservableArrayTest.prototype.testConstruction = function(queue) {
-        expectAsserts(1);
-        queuedRequire(queue, ["antie/declui/observable-array","antie/class"], function(ObservableArray, Class) {
-            var o = new ObservableArray( [ 303 ] );
+        this.ObservableArrayTest.prototype.testConstructionWithArray = function () {
+            var o = new ObservableArray([ 303 ]);
+            assertEquals([ 303 ], o());
+        };
+
+        this.ObservableArrayTest.prototype.testSetNewArray = function () {
+            var o = new ObservableArray([ 404 ]);
+            o([ 303 ]);
             assertEquals( [ 303 ], o() );
-        });
-    };
+        };
 
-    this.ObservableArrayTest.prototype.testConstructionWithNonArrayValueConvertedToArray = function(queue) {
-        expectAsserts(1);
-        queuedRequire(queue, ["antie/declui/observable-array","antie/class"], function(ObservableArray, Class) {
-            var o = new ObservableArray( 303 );
-            assertEquals( [ 303 ], o() );
-        });
-    };
+        this.ObservableArrayTest.prototype.testAddSubscriber = function () {
+            var o = new ObservableArray([ 404 ]);
 
-    this.ObservableArrayTest.prototype.testValueSetIsValueReturned = function(queue) {
-        expectAsserts(1);
-        queuedRequire(queue, ["antie/declui/observable-array","antie/class"], function(ObservableArray, Class) {
-            var o = new ObservableArray();
-            o( [ "badooosh" ] );
-            assertEquals( [ "badooosh" ], o() );
-        });
-    };
+            var contextObject = { property: "test" };
+            var callback = function(contextObject, arrayDelta, observableArray) {
+                return true;
+            };
 
-    this.ObservableArrayTest.prototype.testNonArrayValueIsConvertedToArray = function(queue) {
-        expectAsserts(1);
-        queuedRequire(queue, ["antie/declui/observable-array","antie/class"], function(ObservableArray, Class) {
-            var o = new ObservableArray();
-            o( "badooosh" );
-            assertEquals( [ "badooosh" ], o() );
-        });
-    };
+            o.subscribe(contextObject, callback);
+            assertEquals( o.subscribers()[ 0 ].contextObject, contextObject );
+            assertEquals( o.subscribers()[ 0 ].callback, callback );
+        };
+
+        this.ObservableArrayTest.prototype.testCantSubscribeTwiceWithSameContextAndCallback = function () {
+            var o = new ObservableArray([ 404 ]);
+
+            var contextObject = { property: "test" };
+            var callback = function(contextObject, arrayDelta, observableArray) {
+                return true;
+            };
+
+            o.subscribe(contextObject, callback);
+            o.subscribe(contextObject, callback);
+
+            assertEquals( 1, o.subscribers().length );
+        };
+
+        this.ObservableArrayTest.prototype.testRemoveSubscriber = function () {
+            var o = new ObservableArray([ 404 ]);
+
+            var contextObject = { property: "test" };
+            var callback = function(contextObject, arrayDelta, observableArray) {
+                return true;
+            };
+
+            var contextObject2 = { property: "test2" };
+            var callback2 = function(contextObject, arrayDelta, observableArray) {
+                return true;
+            };
+
+            o.subscribe(contextObject, callback);
+            o.subscribe(contextObject2, callback2);
+
+            o.unsubscribe(contextObject, callback);
+
+            assertEquals( 1, o.subscribers().length );
+            assertEquals( o.subscribers()[ 0 ].contextObject, contextObject2 );
+            assertEquals( o.subscribers()[ 0 ].callback, callback2 );
+        };
+
+        this.ObservableArrayTest.prototype.testSetNewArrayNotifiesSubscribers = function () {
+            var o = new ObservableArray([ 404 ]);
+
+            var contextObject = { property: "test" };
+            var callback = sinon.stub();
+
+            o.subscribe(contextObject, callback);
+
+            o( [ 303 ] );
+
+            assertTrue( callback.calledOnce );
+        };
+
+        this.ObservableArrayTest.prototype.testSetNewArrayNotifiesSubscribersHasCorrectArrayDelta = function () {
+            var o = new ObservableArray([ 404,303,202,101 ]);
+
+            var contextObject = { property: "test" };
+            var callback = sinon.spy();
+
+            o.subscribe(contextObject, callback);
+
+            o( [ 505,606 ] );
+
+            var removedItems = { 0 : 404, 1 : 303, 2 : 202, 3 : 101  };
+            var addedItems = { 0 : 505, 1 : 606 };
+
+            //assertTrue( callback.calledOnce );
+            assertTrue( callback.calledWith( contextObject, { removedItems : removedItems, addedItems : addedItems } ) );
+        };
 
 
-
+    } );
 })();
