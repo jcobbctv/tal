@@ -125,6 +125,70 @@
             assertTrue( callback.calledWith( contextObject, { removedItems : removedItems, addedItems : addedItems } ) );
         };
 
+        this.ObservableArrayTest.prototype.testPopRemovesLast = function () {
+            var o = new ObservableArray([ 404,303,202,101 ]);
+            assertEquals( 101, o.pop() );
+            assertEquals( [ 404, 303, 202 ], o() );
+        };
 
+        this.ObservableArrayTest.prototype.testPopNotifiesSubscribersHasCorrectArrayDelta = function () {
+            var o = new ObservableArray([ 404,303,202,101 ]);
+
+            var contextObject = { property: "test" };
+            var callback = sinon.spy();
+
+            o.subscribe(contextObject, callback);
+
+            o.pop();
+
+            var removedItems = { 3 : 101  };
+            var addedItems = {};
+
+            assertTrue( callback.calledWith( contextObject, { removedItems : removedItems, addedItems : addedItems } ) );
+        };
+
+        this.ObservableArrayTest.prototype.testPushAddsToEnd = function () {
+            var o = new ObservableArray([ 404,303,202,101 ]);
+            assertEquals( 6, o.push( 606, 707 ) );
+            assertEquals( [ 404, 303, 202, 101, 606, 707 ], o() );
+        };
+
+        this.ObservableArrayTest.prototype.testPushNotifiesSubscribersHasCorrectArrayDelta = function () {
+            var o = new ObservableArray([ 404,303,202,101 ]);
+
+            var contextObject = { property: "test" };
+            var callback = sinon.spy();
+
+            o.subscribe(contextObject, callback);
+
+            o.push( 606, 707 );
+
+            var removedItems = {};
+            var addedItems = { 4 : 606, 5 : 707 };
+
+            assertTrue( callback.calledWith( contextObject, { removedItems : removedItems, addedItems : addedItems } ) );
+        };
+
+        this.ObservableArrayTest.prototype.testReverse = function () {
+            var o = new ObservableArray([ 404,303,202,101 ]);
+            assertEquals( [ 101, 202, 303, 404 ], o.reverse() );
+            assertEquals( [ 101, 202, 303, 404 ], o() );
+        };
+
+        this.ObservableArrayTest.prototype.testReverseNotifiesSubscribersHasCorrectArrayDelta = function () {
+            var o = new ObservableArray([ 404,303,202,101 ]);
+
+            var contextObject = { property: "test" };
+            var callback = sinon.spy();
+
+            o.subscribe(contextObject, callback);
+            o.reverse();
+
+            var removedItems    = {};
+            var addedItems      = {};
+            var remappedItems   = [ ]
+
+            assertTrue( callback.calledWith( contextObject, { removedItems : removedItems, addedItems : addedItems } ) );
+        };
     } );
 })();

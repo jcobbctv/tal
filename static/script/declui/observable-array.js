@@ -39,12 +39,18 @@ require.def('antie/declui/observable-array', [],
                 }
             }
 
-            function arrayToHash( array ){
+            function arrayToHash( array, from ){
+
+                if( from === undefined ){
+                    from = 0;
+                }
+
                 var l = array.length;
                 var h = {};
-                for( var i = 0; i < l; i++ ){
+                for( var i = from; i < l; i++ ){
                     h[ i ] = array[ i ];
                 }
+                return h;
             }
 
             /**
@@ -93,6 +99,49 @@ require.def('antie/declui/observable-array', [],
                     subscribers.splice(i, 1);
                 }
             }
+
+            observable.pop = function(){
+                var arrayDelta = {};
+
+                var removedIndex = value.length - 1;
+                var removedValue = value.pop();
+
+                arrayDelta.addedItems = {};
+                arrayDelta.removedItems = {};
+                arrayDelta.removedItems[ removedIndex ] = removedValue;
+                notifySubscribers( arrayDelta );
+
+                return removedValue;
+            }
+
+            observable.push = function(){
+                var arrayDelta = {};
+                var startIndex = value.length;
+
+                Array.prototype.push.apply( value, arguments );
+
+                arrayDelta.removedItems = {};
+                arrayDelta.addedItems = arrayToHash( value, startIndex );
+
+                notifySubscribers( arrayDelta );
+
+                return value.length;
+            }
+
+            observable.reverse = function(){
+                var arrayDelta = {};
+
+                arrayDelta.addedItems = {};
+                arrayDelta.removedItems = {};
+                arrayDelta.remappedItems = [];
+
+                for( var i = value.length - 1; i >= 0; i-- ){
+                    arrayDelta.push( i );
+                }
+
+                return value.reverse();
+            }
+
 
             return observable;
         };
