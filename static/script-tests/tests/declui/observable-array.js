@@ -13,8 +13,8 @@
             var o = new ObservableArray([ 303, 404 ]);
 
             var notifiedValue;
-            function notify( value ){
-                notifiedValue = value;
+            function notify( observable ){
+                notifiedValue = observable();
             }
 
             o.subscribe( notify );
@@ -28,8 +28,8 @@
             var o = new ObservableArray([ 303, 404 ]);
 
             var notifiedValue;
-            function notify( value ){
-                notifiedValue = value;
+            function notify( observable ){
+                notifiedValue = observable();
             }
 
             o.subscribe( notify );
@@ -43,8 +43,8 @@
             var o = new ObservableArray([ 303, 404 ]);
 
             var notifiedValue;
-            function notify( value ){
-                notifiedValue = value;
+            function notify( observable ){
+                notifiedValue = observable();
             }
 
             o.subscribe( notify );
@@ -58,8 +58,8 @@
             var o = new ObservableArray([ 303, 404, 505, 606 ]);
 
             var notifiedValue;
-            function notify( value ){
-                notifiedValue = value;
+            function notify( observable ){
+                notifiedValue = observable();
             }
 
             o.subscribe( notify );
@@ -72,8 +72,8 @@
             var o = new ObservableArray([ 303, 404, 505, 606 ]);
 
             var notifiedValue;
-            function notify( value ){
-                notifiedValue = value;
+            function notify( observable ){
+                notifiedValue = observable();
             }
 
             o.subscribe( notify );
@@ -87,8 +87,8 @@
             var o = new ObservableArray([ 404, 303, 606, 505 ]);
 
             var notifiedValue;
-            function notify( value ){
-                notifiedValue = value;
+            function notify( observable ){
+                notifiedValue = observable();
             }
 
             o.subscribe( notify );
@@ -111,8 +111,8 @@
             }
 
             var notifiedValue;
-            function notify( value ){
-                notifiedValue = value;
+            function notify( observable ){
+                notifiedValue = observable();
             }
 
             o.subscribe( notify );
@@ -125,8 +125,8 @@
             var o = new ObservableArray([ 303, 404, 505, 606 ]);
 
             var notifiedValue;
-            function notify( value ){
-                notifiedValue = value;
+            function notify( observable ){
+                notifiedValue = observable();
             }
 
             o.subscribe( notify );
@@ -140,8 +140,8 @@
             var o = new ObservableArray([ 303, 404, 505, 606 ]);
 
             var notifiedValue;
-            function notify( value ){
-                notifiedValue = value;
+            function notify( observable ){
+                notifiedValue = observable();
             }
 
             o.subscribe( notify );
@@ -156,8 +156,8 @@
             var a = [ 707, 808 ];
 
             var notifiedValue;
-            function notify( value ){
-                notifiedValue = value;
+            function notify( observable ){
+                notifiedValue = observable();
             }
 
             o.subscribe( notify );
@@ -172,8 +172,8 @@
             var a = new ObservableArray( [ 707, 808 ] );
 
             var notifiedValue;
-            function notify( value ){
-                notifiedValue = value;
+            function notify( observable ){
+                notifiedValue = observable();
             }
 
             o.subscribe( notify );
@@ -189,8 +189,8 @@
             var b = [ 909, 101 ];
 
             var notifiedValue;
-            function notify( value ){
-                notifiedValue = value;
+            function notify( observable ){
+                notifiedValue = observable();
             }
 
             o.subscribe( notify );
@@ -204,8 +204,8 @@
             var o = new ObservableArray( [ 303, 404, 505, 606 ] );
 
             var notifiedValue;
-            function notify( value ){
-                notifiedValue = value;
+            function notify( observable ){
+                notifiedValue = observable();
             }
 
             o.subscribe( notify );
@@ -219,8 +219,8 @@
             var o = new ObservableArray( [ 303, 404, 505, 606 ] );
 
             var notifiedValue;
-            function notify( value ){
-                notifiedValue = value;
+            function notify( observable ){
+                notifiedValue = observable();
             }
 
             o.subscribe( notify );
