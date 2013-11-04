@@ -30,6 +30,26 @@
         });
     };
 
+    this.UIBuilderTest.prototype.testBuildContextTreeGetsInnerText = function(queue) {
+        queuedRequire(queue, ["antie/declui/uibuilder", "antie/declui/observable"],
+            function(UIBuilder,Observable) {
+
+                var xmlMarkup = '<view><list><button>INNERTEXT</button><box></box></list></view>';
+                var domParser = new DOMParser();
+                var doc = domParser.parseFromString( xmlMarkup, "text/xml" );
+
+                var context = UIBuilder.buildContextTree(  doc.documentElement, null );
+
+                var view = context;
+                var list = view.children[ 0 ];
+                var btn0 = list.children[ 0 ];
+                var btn1 = list.children[ 1 ];
+
+                assertEquals( "INNERTEXT", btn0.text );
+
+            });
+    };
+
     this.UIBuilderTest.prototype.testBuildContextTreeGetsNodeType = function(queue) {
         queuedRequire(queue, ["antie/declui/uibuilder", "antie/declui/observable"],
             function(UIBuilder,Observable) {

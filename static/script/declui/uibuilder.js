@@ -18,6 +18,7 @@ require.def('antie/declui/uibuilder', [ 'antie/declui/binding-parser' ],
             var context         = { children: [], parentContext: parentContext };
 
             context.nodeType = domElement.nodeName;
+            context.text = domElement.textContent;
 
             for (i = 0; i < domElement.attributes.length; i++) {
                 var attrib = domElement.attributes[ i ];
