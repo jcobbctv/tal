@@ -1,10 +1,9 @@
 require.def('antie/declui/declui',
     [
         'antie/application',
-        'antie/declui/uibuilder',
-        "antie/declui/widget-factory"
+        'antie/declui/uibuilder'
     ],
-    function (Application, UIBuilder, WidgetFactory ) {
+    function (Application, UIBuilder ) {
         var DeclUI = {};
         var dataModelConstants = {};
         var processors = {};
