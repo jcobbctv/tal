@@ -1,14 +1,7 @@
 (function() {
     this.DeclUITest = AsyncTestCase("DeclUI");
 
-    this.DeclUITest.prototype.setUp = function() {
-    };
-
-    this.DeclUITest.prototype.tearDown = function() {
-    };
-
-
-    this.DeclUITest.prototype.testSingle = function(queue) {
+    this.DeclUITest.prototype.testCreateDomFromXML = function(queue) {
         expectAsserts(1);
         queuedRequire(queue, ["antie/declui/declui"], function(DeclUI) {
 
@@ -23,4 +16,18 @@
             var dom = DeclUI.createDomFromXML();
         });
     };
+
+
+    this.DeclUITest.prototype.testAddBinding = function(queue) {
+        expectAsserts(1);
+        queuedRequire(queue, ["antie/declui/declui"], function(DeclUI) {
+
+            var TextBinding = { init : function(){}, update : function(){} };
+
+            DeclUI.addBinding( "text", TextBinding );
+
+            assertEquals( DeclUI.binders, TextBinding );
+        });
+    };
+
 })();

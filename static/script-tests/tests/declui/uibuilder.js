@@ -167,6 +167,45 @@
             });
     };
 
+    this.UIBuilderTest.prototype.testPreprocessContextTreeCallsBinderUpdateFirstTimeWithoutObservableUpdate= function(queue) {
+        queuedRequire(queue, ["antie/declui/uibuilder", "antie/declui/observable"],
+            function(UIBuilder,Observable) {
+
+                var xmlMarkup = '<view id="view"><list class="hlist"><button bind="text:buttonName"></button><button id="button2"></button></list></view>';
+                var domParser = new DOMParser();
+                var doc = domParser.parseFromString( xmlMarkup, "text/xml" );
+                var context = UIBuilder.buildContextTree( doc.documentElement, null );
+
+                var updateContext;
+                var model = { buttonName : new Observable( "myButton" ) };
+
+                var params = {
+                    widgetFactory : { createWidget : function(){} },
+                    binders : {
+                        text : {
+                            update : function( binderParams, observable ){
+                                updateContext = binderParams.context;
+                            }
+                        }
+                    }
+                };
+                var modelAccessor = function(){
+                    return model;
+                }
+
+                UIBuilder.processContextTree( params, modelAccessor, context );
+
+                var view = context;
+                var list = view.children[ 0 ];
+                var btn0 = list.children[ 0 ];
+                var btn1 = list.children[ 1 ];
+
+                modelAccessor().buttonName( "newName" );
+
+                assertEquals( btn0, updateContext );
+            });
+    };
+
     this.UIBuilderTest.prototype.testPreprocessContextTreeCallsBinderInitWithBoundObservable = function(queue) {
         queuedRequire(queue, ["antie/declui/uibuilder", "antie/declui/observable"],
             function(UIBuilder,Observable) {
@@ -296,6 +335,57 @@
                 var btn1 = list.children[ 1 ];
 
                 assertEquals( forEachModelAccessor, initModelAccessor );
+            });
+    };
+
+    this.UIBuilderTest.prototype.testPreprocessContextTreeBinderInitChildrenGetsUnmodifiedModelAccessorIfNoReturn = function(queue) {
+        queuedRequire(queue, ["antie/declui/uibuilder", "antie/declui/observable"],
+            function(UIBuilder,Observable) {
+
+                var xmlMarkup = '<view id="view"><list bind="forEach: buttons" class="hlist"><button bind="text:buttonName"></button><button id="button2"></button></list></view>';
+                var domParser = new DOMParser();
+                var doc = domParser.parseFromString( xmlMarkup, "text/xml" );
+                var context = UIBuilder.buildContextTree( doc.documentElement, null );
+
+                var initModelAccessor;
+                var textModelAccessor;
+
+                var params = {
+                    widgetFactory : { createWidget : function(){} },
+                    binders : {
+                        forEach : {
+                            init : function( binderParams  ){
+                                //return a model accessor that wraps the observable in this case it should be the buttons
+                                //array - the buttons within the array should then be able to access the objects within that array
+                                initModelAccessor = binderParams.modelAccessor;
+                            }
+                        },
+                        text : {
+                            init : function( binderParams  ){
+                                textModelAccessor = binderParams.modelAccessor;
+                            }
+                        }
+                    }
+                };
+
+                var model = { buttonName : "buttonName",
+                    buttons : [
+                    { buttonName : new Observable( "button1" ) },
+                    { buttonName : new Observable( "button2" ) }
+                ]  };
+                var modelAccessor = function( index ){
+                    return model;
+                }
+
+                UIBuilder.processContextTree( params, modelAccessor, context );
+
+
+                var view = context;
+                var list = view.children[ 0 ];
+                var btn0 = list.children[ 0 ];
+                var btn1 = list.children[ 1 ];
+
+                assertEquals( initModelAccessor, textModelAccessor );
             });
     };
 

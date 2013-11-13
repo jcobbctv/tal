@@ -5,23 +5,7 @@ require.def('antie/declui/declui',
     ],
     function (Application, UIBuilder ) {
         var DeclUI = {};
-        var dataModelConstants = {};
-        var processors = {};
-
-        function addProcessor( name, processor ){
-            processors[ name ] = processor;
-        }
-
-        DeclUI.processDOM = function( dom ){
-        }
-
-
-        DeclUI.createDomFromHTML = function(markup) {
-            var device = Application.getCurrentApplication().getDevice();
-            var element = device._createElement("div");
-            element.innerHTML = markup;
-            return element;
-        }
+        var bindings = {};
 
         DeclUI.createDomFromXML = function(markup) {
             var domParser = new DOMParser();
@@ -30,8 +14,8 @@ require.def('antie/declui/declui',
         }
 
         DeclUI.buildUI = function( rootWidget, dataModel, markup) {
-            var dom = createDom(markup);
-            UIBuilder.createUIFromXML( dataModelConstants, dataModel, dom );
+//            var dom = createDom(markup);
+//            UIBuilder.createUIFromXML( dataModelConstants, dataModel, dom );
         }
 
         return DeclUI;

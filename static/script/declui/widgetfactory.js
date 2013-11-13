@@ -1,10 +1,6 @@
 require.def('antie/declui/widgetfactory', [ 'antie/widgets/button', 'antie/widgets/label', "antie/widgets/image", "antie/widgets/horizontallist", "antie/widgets/verticallist", "antie/widgets/horizontalcarousel" ],
     function (Button,Label,Image,HorizontalList,VerticalList,HorizontalCarousel) {
 
-        function createButton( context ){
-
-        }
-
         var WidgetFactory = {
             handlers : {},
 

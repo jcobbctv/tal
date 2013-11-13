@@ -1,5 +1,5 @@
 //(function() {
-//    this.TypeBindingTest = AsyncTestCase("TypeBindingTest");
+//    this.TypeBindingTest = AsyncTestCase("TextBindingTest");
 //
 //    this.TypeBindingTest.prototype.setUp = function() {
 //    };

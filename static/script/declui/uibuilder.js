@@ -60,11 +60,15 @@ require.def('antie/declui/uibuilder', [ 'antie/declui/binding-parser' ],
                         };
 
                         if (uiContext.binders[ binding ].init) {
-                            childAccessor = uiContext.binders[ binding ].init( binderParams );
+                            var returnedAccessor = uiContext.binders[ binding ].init( binderParams );
+                            if( returnedAccessor ){
+                                childAccessor = returnedAccessor;
+                            }
                         }
 
                         if (uiContext.binders[ binding ].update) {
                             childAccessor = bindingObject[ binding ].subscribe( binderParams, uiContext.binders[ binding ].update );
+                            uiContext.binders[ binding ].update( binderParams, bindingObject[ binding ] );
                         }
                     } else {
                         throw new UIBuilder.UIBuilderException("unknown binding");
