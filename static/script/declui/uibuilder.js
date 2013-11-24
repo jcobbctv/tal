@@ -56,7 +56,8 @@ require.def('antie/declui/uibuilder', [ 'antie/declui/binding-parser' ],
                         var binderParams = {
                           context       : context,
                           observable    : bindingObject[ binding ],
-                          modelAccessor : modelAccessor
+                          modelAccessor : modelAccessor,
+                          widgetFactory : uiContext.widgetFactory
                         };
 
                         if (uiContext.binders[ binding ].init) {
@@ -79,6 +80,33 @@ require.def('antie/declui/uibuilder', [ 'antie/declui/binding-parser' ],
             for (i = 0; i < context.children.length; i++) {
                 UIBuilder.processContextTree( uiContext, childAccessor, context.children[ i ], i );
             }
+        }
+
+        /**
+         *
+         * @param model
+         * @param viewElement
+         * @param binders
+         * @param widgetFactory
+         * @param containerWidget
+         */
+        UIBuilder.buildUIFromXMLDom = function( params ){
+            uiContext = {
+                widgetFactory:params.widgetFactory,
+                binders:params.binders
+            };
+
+            var containingContext = {
+                children : [],
+                widget : params.containerWidget
+            }
+
+            function modelAccessor(){
+                return params.model;
+            }
+
+            var viewContext = this.buildContextTree( params.viewElement, containingContext );
+            this.processContextTree( uiContext, modelAccessor, viewContext, 0 );
         }
 
         return UIBuilder;

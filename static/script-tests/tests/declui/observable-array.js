@@ -9,6 +9,20 @@
         this.ObservableArrayTest.prototype.tearDown = function () {
         };
 
+        this.ObservableArrayTest.prototype.testWithNoInitVariable = function () {
+            var o = new ObservableArray();
+
+            var notifiedValue;
+            function notify( observable ){
+                notifiedValue = observable();
+            }
+
+            o.subscribe( notify );
+            o.push( 303 );
+
+            assertEquals( [ 303 ], notifiedValue );
+        };
+
         this.ObservableArrayTest.prototype.testPop = function () {
             var o = new ObservableArray([ 303, 404 ]);
 

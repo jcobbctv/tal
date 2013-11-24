@@ -2,6 +2,11 @@ require.def( 'antie/declui/observable-array',[ 'antie/declui/pubsub', 'antie/dec
     function( PubSub, Observable ) {
 
         var ObservableArrayClass = function( init ){
+
+            if( init === undefined ){
+                init = [];
+            }
+
             var value       = init;
             var pubsub      = new PubSub();
             var observable  = new Observable( value );

@@ -167,6 +167,50 @@
             });
     };
 
+    this.UIBuilderTest.prototype.testPreprocessContextTreeCallsBinderInitUpdateWithWidgetFactoryInParams= function(queue) {
+        queuedRequire(queue, ["antie/declui/uibuilder", "antie/declui/observable"],
+            function(UIBuilder,Observable) {
+
+                var xmlMarkup = '<view id="view"><list class="hlist"><button bind="text:buttonName"></button><button id="button2"></button></list></view>';
+                var domParser = new DOMParser();
+                var doc = domParser.parseFromString( xmlMarkup, "text/xml" );
+                var context = UIBuilder.buildContextTree( doc.documentElement, null );
+
+                var initWidgetFactory;
+                var updateWidgetFactory;
+
+                var params = {
+                    widgetFactory : { createWidget : function(){} },
+                    binders : {
+                        text : {
+                            init : function( binderParams ){
+                                initWidgetFactory = binderParams.widgetFactory;
+                            },
+                            update : function( binderParams, observable ){
+                                updateWidgetFactory = binderParams.widgetFactory;
+                            }
+                        }
+                    }
+                };
+                var model = { buttonName : new Observable( "myButton" ) };
+                var modelAccessor = function(){
+                    return model;
+                }
+
+                UIBuilder.processContextTree( params, modelAccessor, context );
+
+                var view = context;
+                var list = view.children[ 0 ];
+                var btn0 = list.children[ 0 ];
+                var btn1 = list.children[ 1 ];
+
+                modelAccessor().buttonName( "newName" );
+
+                assertEquals( params.widgetFactory, initWidgetFactory );
+                assertEquals( params.widgetFactory, updateWidgetFactory );
+            });
+    };
+
     this.UIBuilderTest.prototype.testPreprocessContextTreeCallsBinderUpdateFirstTimeWithoutObservableUpdate= function(queue) {
         queuedRequire(queue, ["antie/declui/uibuilder", "antie/declui/observable"],
             function(UIBuilder,Observable) {
@@ -419,4 +463,51 @@
                 assertTrue( exceptionThrown );
             });
     };
+
+    this.UIBuilderTest.prototype.testBuildUIFromXMLDom = function(queue) {
+        queuedRequire(queue, ["antie/declui/uibuilder", "antie/declui/observable"],
+            function(UIBuilder,Observable) {
+
+                var xmlMarkup = '<view><list><button></button><button></button></list></view>';
+                var domParser = new DOMParser();
+                var doc = domParser.parseFromString( xmlMarkup, "text/xml" );
+
+
+                var bctMock = sinon.stub( UIBuilder, "buildContextTree" );
+                var pctMock = sinon.stub( UIBuilder, "processContextTree" );
+
+                bctMock.returns( {} );
+
+                var model = {
+                  item : new Observable( 101 )
+                };
+
+
+                function modelAccessor(){
+                    return model;
+                }
+
+                var context = UIBuilder.buildUIFromXMLDom(
+                    { model : model, viewElement : doc.documentElement, binders : [], widgetFactory : {}, containerWidget : null  } );
+
+
+                assertTrue( bctMock.calledOnce );
+                assertTrue( bctMock.calledWithExactly( doc.documentElement, { children : [], widget : null} ) );
+
+                uiContext = {
+                    widgetFactory:{},
+                    binders:[]
+                };
+
+                assertTrue( pctMock.calledOnce );
+                assertEquals( uiContext, pctMock.args[ 0 ][ 0 ] );
+                assertEquals( model, pctMock.args[ 0 ][ 1 ]() );
+                assertEquals( {}, pctMock.args[ 0 ][ 2 ] );
+                assertEquals( 0, pctMock.args[ 0 ][ 3 ] );
+
+                bctMock.restore();
+                pctMock.restore();
+            });
+    };
+
 })();

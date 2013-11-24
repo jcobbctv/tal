@@ -17,17 +17,4 @@
         });
     };
 
-
-    this.DeclUITest.prototype.testAddBinding = function(queue) {
-        expectAsserts(1);
-        queuedRequire(queue, ["antie/declui/declui"], function(DeclUI) {
-
-            var TextBinding = { init : function(){}, update : function(){} };
-
-            DeclUI.addBinding( "text", TextBinding );
-
-            assertEquals( DeclUI.binders, TextBinding );
-        });
-    };
-
 })();
