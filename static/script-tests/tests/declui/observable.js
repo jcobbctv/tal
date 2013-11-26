@@ -23,7 +23,7 @@
 */
 
 (function() {
-	this.ObservableTest = AsyncTestCase("ObservableValue");
+	this.ObservableTest = AsyncTestCase("DU.ObservableValue");
 
 	this.ObservableTest.prototype.setUp = function() {
 	};

@@ -1,5 +1,5 @@
 (function() {
-    this.BindingParserTest = AsyncTestCase("BindingParser");
+    this.BindingParserTest = AsyncTestCase("DU.BindingParser");
 
     this.BindingParserTest.prototype.setUp = function() {
     };

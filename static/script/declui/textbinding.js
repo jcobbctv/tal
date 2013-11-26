@@ -9,10 +9,12 @@ require.def('antie/declui/textbinding',
 //                widgetFactory : widgetFactory
 //            };
 
-            update : function( binderParams ){
+            name : "text",
+
+            update : function( binderParams, value ){
 
                 if( binderParams.context.widget.setText ){
-                    binderParams.context.widget.setText( binderParams.observable() );
+                    binderParams.context.widget.setText( value() );
                     return;
                 }
 
@@ -21,12 +23,12 @@ require.def('antie/declui/textbinding',
 
                 for( i = 0; i < childWidgets.length; i++ ){
                     if( childWidgets[ i ].setText ){
-                        childWidgets[ i ].setText( binderParams.observable() );
+                        childWidgets[ i ].setText( value() );
                         return;
                     }
                 }
 
-                var context = { nodeType : "label", text : binderParams.observable() };
+                var context = { nodeType : "label", text : value() };
 
                 var label = binderParams.widgetFactory.createWidget( context );
                 binderParams.context.widget.appendChildWidget( label );

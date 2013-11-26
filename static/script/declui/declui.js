@@ -2,11 +2,20 @@ require.def('antie/declui/declui',
     [
         'antie/application',
         'antie/declui/uibuilder',
-        'antie/declui/widgetfactory'
+        'antie/declui/widgetfactory',
+        'antie/declui/textbinding',
+        'antie/declui/foreachbinding'
     ],
-    function (Application, UIBuilder ) {
+    function (Application, UIBuilder, WidgetFactory, TextBinding, ForEachBinding ) {
         var DeclUI = {};
-        var binders = {};
+
+
+        function loadBinders(){
+            var binders = {};
+            binders[ TextBinding.name ]    = TextBinding;
+            binders[ ForEachBinding.name ] = ForEachBinding;
+            return binders;
+        }
 
         DeclUI.createDomFromXML = function(markup) {
             var domParser = new DOMParser();
@@ -14,16 +23,24 @@ require.def('antie/declui/declui',
             return doc;
         }
 
-        DeclUI.buildUI = function( containerWidget, dataModel, markup) {
-            var dom = this.createDomFromXML( markup );
+        DeclUI.buildUI = function( container, dataModel, markup) {
+           var dom = this.createDomFromXML( markup );
 
-            UIBuilder.buildUIFromXMLDom( { model : dataModel, viewElement:dom.documentElement, } );
+           var context = UIBuilder.buildUIFromXMLDom(
+               { model : dataModel,
+                 docElement:dom.documentElement,
+                 binders: this.binders,
+                 widgetFactory: WidgetFactory,
+               }
+           );
 
-
-
-//            var dom = createDom(markup);
-//            UIBuilder.createUIFromXML( dataModelConstants, dataModel, dom );
+            var i;
+            for( i = 0; i < context.children.length; i++ ){
+                container.appendChildWidget( context.children[ i ].widget );
+            }
         }
+
+        DeclUI.binders = loadBinders();
 
         return DeclUI;
     }

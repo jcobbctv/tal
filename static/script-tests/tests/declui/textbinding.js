@@ -1,5 +1,5 @@
 (function() {
-    this.TypeBindingTest = AsyncTestCase("TextBindingTest");
+    this.TypeBindingTest = AsyncTestCase("DU.TextBindingTest");
 
     this.TypeBindingTest.prototype.setUp = function() {
     };
@@ -7,21 +7,17 @@
     this.TypeBindingTest.prototype.tearDown = function() {
     };
 
-    this.TypeBindingTest.prototype.testTextBindingHasNoInitFunction = function(queue) {
+    this.TypeBindingTest.prototype.testTextBindingHasCorrectName = function(queue) {
         expectAsserts(1);
         queuedRequire(queue, ["antie/declui/textbinding"], function(TextBinding) {
-
-            assertEquals( "text" === TextBinding.name );
-
+            assertEquals( "text", TextBinding.name );
         });
     };
 
     this.TypeBindingTest.prototype.testTextBindingHasNoInitFunction = function(queue) {
         expectAsserts(1);
         queuedRequire(queue, ["antie/declui/textbinding"], function(TextBinding) {
-
             assertTrue( TextBinding.init === undefined );
-
         });
     };
 
@@ -43,10 +39,10 @@
                 };
 
                 binderParams.context = context;
-                binderParams.observable = new Observable( "SetFromObservable" );
-                binderParams.modelAccessor = function(){ return { text : 1 } };
+                var observable = new Observable( "SetFromObservable" );
+                binderParams.modelAccessor = function(){ return { text : 1 }; };
 
-                TextBinding.update( binderParams );
+                TextBinding.update( binderParams, observable );
 
                 assertEquals( "SetFromObservable", label.getText() );
             });
@@ -69,10 +65,10 @@
             };
 
             binderParams.context = context;
-            binderParams.observable = new Observable( "SetFromObservable" );
+            var observable = new Observable( "SetFromObservable" );
             binderParams.modelAccessor = function(){ return { text : 1 } };
 
-            TextBinding.update( binderParams );
+            TextBinding.update( binderParams, observable );
 
             assertEquals( "SetFromObservable", label.getText() );
         });
@@ -92,11 +88,11 @@
                 };
 
                 binderParams.context = context;
-                binderParams.observable = new Observable( "SetFromObservable" );
+                var observable = new Observable( "SetFromObservable" );
                 binderParams.modelAccessor = function(){ return { text : 1 } };
                 binderParams.widgetFactory = WidgetFactory;
 
-                TextBinding.update( binderParams );
+                TextBinding.update( binderParams, observable );
 
                 var label = button.getChildWidgets()[ 0 ];
 

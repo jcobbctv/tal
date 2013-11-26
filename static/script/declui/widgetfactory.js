@@ -14,6 +14,13 @@ require.def('antie/declui/widgetfactory', [ 'antie/widgets/button', 'antie/widge
             createWidget : function( context ){
                 var widget;
 
+                if( context.widget ){
+                    if( context.parentContext.widget ){
+                        context.parentContext.widget.removeChildWidget( context.widget );
+                    }
+                    context.widget = null;
+                }
+
                 if( this.handlers[ context.nodeType ] ){
                     widget = this.handlers[ context.nodeType ]( context );
                 }else{
@@ -25,6 +32,10 @@ require.def('antie/declui/widgetfactory', [ 'antie/widgets/button', 'antie/widge
                 }
 
                 return widget;
+            },
+
+            updateWidget : function( context ){
+                context.widget.removeChildWidgets();
             }
         };
 
@@ -36,6 +47,10 @@ require.def('antie/declui/widgetfactory', [ 'antie/widgets/button', 'antie/widge
                 widget.appendChildWidget( label );
             }
             return widget;
+        } );
+
+        WidgetFactory.registerHandler( "view", function( context ){
+            return null;
         } );
 
         WidgetFactory.registerHandler( "label", function( context ){

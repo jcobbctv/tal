@@ -23,7 +23,7 @@
 */
 
 (function() {
-    this.PubSubTest = AsyncTestCase("PubSub");
+    this.PubSubTest = AsyncTestCase("DU.PubSub");
 
     this.PubSubTest.prototype.setUp = function() {
     };

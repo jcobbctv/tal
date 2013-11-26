@@ -1,5 +1,5 @@
 (function() {
-    this.UIBuilderTest = AsyncTestCase("UIBuilder");
+    this.UIBuilderTest = AsyncTestCase("DU.UIBuilder");
 
     this.UIBuilderTest.prototype.testBuildContextTreeBuildsContextTreeStructure = function(queue) {
         queuedRequire(queue, ["antie/declui/uibuilder", "antie/declui/observable"],
@@ -9,14 +9,14 @@
             var domParser = new DOMParser();
             var doc = domParser.parseFromString( xmlMarkup, "text/xml" );
 
-            var context = UIBuilder.buildContextTree(  doc.documentElement, null );
+            var context = UIBuilder.buildContextTree(  doc.documentElement );
 
             var view = context;
             var list = view.children[ 0 ];
             var btn0 = list.children[ 0 ];
             var btn1 = list.children[ 1 ];
 
-            assertNull( view.parentContext );
+            assertUndefined( view.parentContext );
             assertEquals( 1, view.children.length );
 
             assertEquals( view, list.parentContext );
@@ -38,7 +38,7 @@
                 var domParser = new DOMParser();
                 var doc = domParser.parseFromString( xmlMarkup, "text/xml" );
 
-                var context = UIBuilder.buildContextTree(  doc.documentElement, null );
+                var context = UIBuilder.buildContextTree(  doc.documentElement );
 
                 var view = context;
                 var list = view.children[ 0 ];
@@ -58,7 +58,7 @@
                 var domParser = new DOMParser();
                 var doc = domParser.parseFromString( xmlMarkup, "text/xml" );
 
-                var context = UIBuilder.buildContextTree(  doc.documentElement, null );
+                var context = UIBuilder.buildContextTree(  doc.documentElement );
 
                 var view = context;
                 var list = view.children[ 0 ];
@@ -80,7 +80,7 @@
                 var domParser = new DOMParser();
                 var doc = domParser.parseFromString( xmlMarkup, "text/xml" );
 
-                var context = UIBuilder.buildContextTree(  doc.documentElement, null );
+                var context = UIBuilder.buildContextTree(  doc.documentElement );
 
                 var view = context;
                 var list = view.children[ 0 ];
@@ -94,6 +94,21 @@
             });
     };
 
+    this.UIBuilderTest.prototype.testBuildContextTreeReturnsViewContext = function(queue) {
+        queuedRequire(queue, ["antie/declui/uibuilder", "antie/declui/observable"],
+            function(UIBuilder,Observable) {
+
+                var xmlMarkup = '<view id="view"><list class="hlist"><button bind="text:buttonName"></button><button id="button2"></button></list></view>';
+                var domParser = new DOMParser();
+                var doc = domParser.parseFromString( xmlMarkup, "text/xml" );
+
+                var context = UIBuilder.buildContextTree( doc.documentElement );
+                var view = context;
+
+                assertEquals( "view", context.id );
+            });
+    };
+
     this.UIBuilderTest.prototype.testPreprocessContextTreeCallsCreateWidget= function(queue) {
         queuedRequire(queue, ["antie/declui/uibuilder", "antie/declui/observable"],
             function(UIBuilder,Observable) {
@@ -102,7 +117,7 @@
                 var domParser = new DOMParser();
                 var doc = domParser.parseFromString( xmlMarkup, "text/xml" );
 
-                var context = UIBuilder.buildContextTree( doc.documentElement, null );
+                var context = UIBuilder.buildContextTree( doc.documentElement );
 
                 var params = {
                     widgetFactory : { createWidget : function(){} },
@@ -127,10 +142,10 @@
         queuedRequire(queue, ["antie/declui/uibuilder", "antie/declui/observable"],
             function(UIBuilder,Observable) {
 
-                var xmlMarkup = '<view id="view"><list class="hlist"><button bind="text:buttonName"></button><button id="button2"></button></list></view>';
+                var xmlMarkup = '<view id="view"><button bind="text:buttonName"><button></button></button></view>';
                 var domParser = new DOMParser();
                 var doc = domParser.parseFromString( xmlMarkup, "text/xml" );
-                var context = UIBuilder.buildContextTree( doc.documentElement, null );
+                var context = UIBuilder.buildContextTree( doc.documentElement );
 
                 var initContext;
                 var updateContext;
@@ -148,7 +163,11 @@
                         }
                     }
                 };
-                var model = { buttonName : new Observable( "myButton" ) };
+
+                var initSpy       = sinon.spy( params.binders.text, "init" );
+                var updateSpy     = sinon.spy( params.binders.text, "update" );
+                var pctSpy        = sinon.spy( UIBuilder, "processContextTree" );
+                var model         = { buttonName : new Observable( "myButton" ) };
                 var modelAccessor = function(){
                     return model;
                 }
@@ -162,8 +181,13 @@
 
                 modelAccessor().buttonName( "newName" );
 
-                assertEquals( btn0, initContext );
-                assertEquals( btn0, updateContext );
+                assertTrue( initSpy.calledOnce );
+                assertTrue( pctSpy.calledThrice );
+                assertTrue( updateSpy.calledTwice );
+
+                initSpy.restore();
+                updateSpy.restore();
+                pctSpy.restore();
             });
     };
 
@@ -174,7 +198,7 @@
                 var xmlMarkup = '<view id="view"><list class="hlist"><button bind="text:buttonName"></button><button id="button2"></button></list></view>';
                 var domParser = new DOMParser();
                 var doc = domParser.parseFromString( xmlMarkup, "text/xml" );
-                var context = UIBuilder.buildContextTree( doc.documentElement, null );
+                var context = UIBuilder.buildContextTree( doc.documentElement );
 
                 var initWidgetFactory;
                 var updateWidgetFactory;
@@ -218,7 +242,7 @@
                 var xmlMarkup = '<view id="view"><list class="hlist"><button bind="text:buttonName"></button><button id="button2"></button></list></view>';
                 var domParser = new DOMParser();
                 var doc = domParser.parseFromString( xmlMarkup, "text/xml" );
-                var context = UIBuilder.buildContextTree( doc.documentElement, null );
+                var context = UIBuilder.buildContextTree( doc.documentElement );
 
                 var updateContext;
                 var model = { buttonName : new Observable( "myButton" ) };
@@ -257,7 +281,7 @@
                 var xmlMarkup = '<view id="view"><list class="hlist"><button bind="text:buttonName"></button><button id="button2"></button></list></view>';
                 var domParser = new DOMParser();
                 var doc = domParser.parseFromString( xmlMarkup, "text/xml" );
-                var context = UIBuilder.buildContextTree( doc.documentElement, null );
+                var context = UIBuilder.buildContextTree( doc.documentElement );
 
                 var initObservable;
 
@@ -265,8 +289,8 @@
                     widgetFactory : { createWidget : function(){} },
                     binders : {
                         text : {
-                            init : function( binderParams ){
-                                initObservable = binderParams.observable;
+                            init : function( binderParams, value ){
+                                initObservable = value;
                             },
                         }
                     }
@@ -295,7 +319,7 @@
                 var xmlMarkup = '<view id="view"><list class="hlist"><button bind="text:buttonName"></button><button id="button2"></button></list></view>';
                 var domParser = new DOMParser();
                 var doc = domParser.parseFromString( xmlMarkup, "text/xml" );
-                var context = UIBuilder.buildContextTree( doc.documentElement, null );
+                var context = UIBuilder.buildContextTree( doc.documentElement );
 
 
                 var initContext;
@@ -330,42 +354,44 @@
     };
 
     this.UIBuilderTest.prototype.testPreprocessContextTreeBinderInitChildrenGetsModifiedModelAccessor = function(queue) {
-        queuedRequire(queue, ["antie/declui/uibuilder", "antie/declui/observable"],
-            function(UIBuilder,Observable) {
+        queuedRequire(queue, ["antie/declui/uibuilder", "antie/declui/observable", "antie/declui/observable-array"],
+            function(UIBuilder,Observable,ObservableArray) {
 
                 var xmlMarkup = '<view id="view"><list bind="forEach: buttons" class="hlist"><button bind="text:buttonName"></button><button id="button2"></button></list></view>';
                 var domParser = new DOMParser();
                 var doc = domParser.parseFromString( xmlMarkup, "text/xml" );
-                var context = UIBuilder.buildContextTree( doc.documentElement, null );
+                var context = UIBuilder.buildContextTree( doc.documentElement );
 
                 var initContext;
                 var initModelAccessor;
                 var updateContext;
                 var forEachModelAccessor;
 
+                var model = { buttons : new ObservableArray( [
+                    { buttonName : new Observable( "button1" ) },
+                    { buttonName : new Observable( "button2" ) },
+                ] ) };
+
                 var params = {
                     widgetFactory : { createWidget : function(){} },
                     binders : {
                         forEach : {
-                            init : function( binderParams  ){
+                            init : function( binderParams, value ){
                                 //return a model accessor that wraps the observable in this case it should be the buttons
                                 //array - the buttons within the array should then be able to access the objects within that array
-                                forEachModelAccessor = function( index ) { return binderParams.observable[ index ]; };
+                                forEachModelAccessor = function( index ) { return value()[ index ] };
                                 return forEachModelAccessor;
                             }
                         },
                         text : {
-                            init : function( binderParams  ){
+                            init : function( binderParams, value ){
                                 initModelAccessor = binderParams.modelAccessor;
                             },
                         }
                     }
                 };
 
-                var model = { buttons : [
-                    { buttonName : new Observable( "button1" ) },
-                    { buttonName : new Observable( "button2" ) },
-                ]  };
+
                 var modelAccessor = function( index ){
                     return model;
                 }
@@ -389,7 +415,7 @@
                 var xmlMarkup = '<view id="view"><list bind="forEach: buttons" class="hlist"><button bind="text:buttonName"></button><button id="button2"></button></list></view>';
                 var domParser = new DOMParser();
                 var doc = domParser.parseFromString( xmlMarkup, "text/xml" );
-                var context = UIBuilder.buildContextTree( doc.documentElement, null );
+                var context = UIBuilder.buildContextTree( doc.documentElement );
 
                 var initModelAccessor;
                 var textModelAccessor;
@@ -433,6 +459,63 @@
             });
     };
 
+    this.UIBuilderTest.prototype.testProcessContextTreeCallsUpdateWidgetWhenBinderUpdateReturnsTrue = function(queue) {
+        queuedRequire(queue, ["antie/declui/uibuilder", "antie/declui/observable", "antie/declui/observable-array" ],
+            function(UIBuilder,Observable,ObservableArray) {
+
+                var xmlMarkup = '<view><vlist bind="forEach: buttons"><button bind="text:buttonName"></button></vlist></view>';
+                var domParser = new DOMParser();
+                var doc = domParser.parseFromString( xmlMarkup, "text/xml" );
+                var context = UIBuilder.buildContextTree( doc.documentElement );
+
+                var params = {
+                    widgetFactory :
+                    {
+                        createWidget : function(){},
+                        updateWidget : function(){}
+                    },
+                    binders : {
+                        forEach : {
+                            init : function( binderParams, value  ){
+                                return function( index ){ return value()[ index ]; };
+                            },
+
+                            update : function( binderParams, value ){
+                                return true;
+                            }
+                        },
+                        text : {
+                            init : function( binderParams, value ){
+                            }
+                        }
+                    }
+                };
+
+                var model = {
+                    buttons : new ObservableArray( [
+                        { buttonName : new Observable( "button1" ) },
+                        { buttonName : new Observable( "button2" ) }
+                    ] )  };
+                var modelAccessor = function( index ){
+                    return model;
+                }
+
+                var updateWidgetSpy = sinon.spy( params.widgetFactory, "updateWidget" );
+
+                UIBuilder.processContextTree( params, modelAccessor, context );
+
+                model.buttons.pop();
+
+                assertTrue( updateWidgetSpy.calledOnce );
+                assertTrue( updateWidgetSpy.args[ 0 ][ 0 ].nodeType === "vlist" );
+
+
+
+
+                updateWidgetSpy.restore();
+            });
+    };
+
     this.UIBuilderTest.prototype.testPreprocessContextTreeThrowsUnknownBindingException = function(queue) {
         queuedRequire(queue, ["antie/declui/uibuilder", "antie/declui/observable"],
             function(UIBuilder,Observable) {
@@ -440,7 +523,7 @@
                 var xmlMarkup = '<view><list bind="unknown:variable"><button></button><button></button></list></view>';
                 var domParser = new DOMParser();
                 var doc = domParser.parseFromString( xmlMarkup, "text/xml" );
-                var context = UIBuilder.buildContextTree( doc.documentElement, null );
+                var context = UIBuilder.buildContextTree( doc.documentElement );
 
                 var params = {
                     widgetFactory : { createWidget : function(){} },
@@ -456,7 +539,40 @@
                     UIBuilder.processContextTree( params, modelAccessor, context )
                 }
                 catch( x ){
-                    if( x instanceof UIBuilder.UIBuilderException ){
+                    if( x instanceof UIBuilder.UnknownBindingException ){
+                        exceptionThrown = true;
+                    }
+                }
+                assertTrue( exceptionThrown );
+            });
+    };
+
+    this.UIBuilderTest.prototype.testBuildUIFromXMLDomThrowsNoViewException = function(queue) {
+        queuedRequire(queue, ["antie/declui/uibuilder", "antie/declui/observable"],
+            function(UIBuilder,Observable) {
+
+                var xmlMarkup = '<list><button></button><button></button></list>';
+                var domParser = new DOMParser();
+                var doc = domParser.parseFromString( xmlMarkup, "text/xml" );
+
+                var bctMock = sinon.stub( UIBuilder, "buildContextTree" );
+                var pctMock = sinon.stub( UIBuilder, "processContextTree" );
+
+                var model = {
+                    item : new Observable( 101 )
+                };
+
+                function modelAccessor(){
+                    return model;
+                }
+
+                var exceptionThrown = false;
+                try{
+                    var context = UIBuilder.buildUIFromXMLDom(
+                        { model : model, docElement : doc.documentElement, binders : [], widgetFactory : {} } );
+                }
+                catch( x ){
+                    if( x instanceof UIBuilder.NoViewElementException ){
                         exceptionThrown = true;
                     }
                 }
@@ -472,37 +588,38 @@
                 var domParser = new DOMParser();
                 var doc = domParser.parseFromString( xmlMarkup, "text/xml" );
 
-
                 var bctMock = sinon.stub( UIBuilder, "buildContextTree" );
                 var pctMock = sinon.stub( UIBuilder, "processContextTree" );
 
-                bctMock.returns( {} );
+                var viewContext = { nodeType : "view" };
+
+                bctMock.returns( viewContext );
 
                 var model = {
                   item : new Observable( 101 )
                 };
-
 
                 function modelAccessor(){
                     return model;
                 }
 
                 var context = UIBuilder.buildUIFromXMLDom(
-                    { model : model, viewElement : doc.documentElement, binders : [], widgetFactory : {}, containerWidget : null  } );
-
-
-                assertTrue( bctMock.calledOnce );
-                assertTrue( bctMock.calledWithExactly( doc.documentElement, { children : [], widget : null} ) );
+                    { model : model, docElement : doc.documentElement, binders : [], widgetFactory : {} } );
 
                 uiContext = {
                     widgetFactory:{},
                     binders:[]
                 };
 
+                assertEquals( undefined, context.widget );
+                assertEquals( "view", context.nodeType );
+                assertTrue( bctMock.calledOnce );
+                assertTrue( bctMock.calledWithExactly( doc.documentElement ) );
+
                 assertTrue( pctMock.calledOnce );
                 assertEquals( uiContext, pctMock.args[ 0 ][ 0 ] );
                 assertEquals( model, pctMock.args[ 0 ][ 1 ]() );
-                assertEquals( {}, pctMock.args[ 0 ][ 2 ] );
+                assertEquals( viewContext, pctMock.args[ 0 ][ 2 ] );
                 assertEquals( 0, pctMock.args[ 0 ][ 3 ] );
 
                 bctMock.restore();

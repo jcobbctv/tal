@@ -3,7 +3,11 @@ require.def('antie/declui/uibuilder', [ 'antie/declui/binding-parser' ],
 
         var UIBuilder = {};
 
-        UIBuilder.UIBuilderException = function UIBuilderException(message) {
+        UIBuilder.UnknownBindingException = function UnknownBindingException(message) {
+            this.message = message;
+        }
+
+        UIBuilder.NoViewElementException = function NoViewElementException(message) {
             this.message = message;
         }
 
@@ -15,7 +19,7 @@ require.def('antie/declui/uibuilder', [ 'antie/declui/binding-parser' ],
          */
         UIBuilder.buildContextTree = function( domElement, parentContext ) {
             var i;
-            var context         = { children: [], parentContext: parentContext };
+            var context = { children: [], parentContext: parentContext };
 
             context.nodeType = domElement.nodeName;
             context.text = domElement.textContent;
@@ -31,6 +35,24 @@ require.def('antie/declui/uibuilder', [ 'antie/declui/binding-parser' ],
             }
 
             return context;
+        }
+
+        UIBuilder._handleUpdate = function( uiContext, context, childAccessor, binderParams, bindingObject, binding ){
+
+            var updateProxy = function( params, value ){
+                var i;
+                if( true === uiContext.binders[ binding ].update( params, value ) ){
+
+                    uiContext.widgetFactory.updateWidget( context );
+
+                    for (i = 0; i < context.children.length; i++) {
+                        UIBuilder.processContextTree( uiContext, childAccessor, context.children[ i ], i );
+                    }
+                }
+            }
+
+            bindingObject[ binding ].subscribe( binderParams, updateProxy );
+            uiContext.binders[ binding ].update( binderParams, bindingObject[ binding ] );
         }
 
         /**
@@ -55,24 +77,22 @@ require.def('antie/declui/uibuilder', [ 'antie/declui/binding-parser' ],
 
                         var binderParams = {
                           context       : context,
-                          observable    : bindingObject[ binding ],
                           modelAccessor : modelAccessor,
                           widgetFactory : uiContext.widgetFactory
                         };
 
-                        if (uiContext.binders[ binding ].init) {
-                            var returnedAccessor = uiContext.binders[ binding ].init( binderParams );
+                        if( uiContext.binders[ binding ].init ) {
+                            var returnedAccessor = uiContext.binders[ binding ].init( binderParams, bindingObject[ binding ] );
                             if( returnedAccessor ){
                                 childAccessor = returnedAccessor;
                             }
                         }
 
-                        if (uiContext.binders[ binding ].update) {
-                            childAccessor = bindingObject[ binding ].subscribe( binderParams, uiContext.binders[ binding ].update );
-                            uiContext.binders[ binding ].update( binderParams, bindingObject[ binding ] );
+                        if (uiContext.binders[ binding ].update ) {
+                            this._handleUpdate( uiContext, context, childAccessor, binderParams, bindingObject, binding );
                         }
                     } else {
-                        throw new UIBuilder.UIBuilderException("unknown binding");
+                        throw new UIBuilder.UnknownBindingException("unknown binding:"  + binding );
                     }
                 }
             }
@@ -85,28 +105,28 @@ require.def('antie/declui/uibuilder', [ 'antie/declui/binding-parser' ],
         /**
          *
          * @param model
-         * @param viewElement
+         * @param docElement
          * @param binders
          * @param widgetFactory
-         * @param containerWidget
          */
         UIBuilder.buildUIFromXMLDom = function( params ){
-            uiContext = {
+            var uiContext = {
                 widgetFactory:params.widgetFactory,
                 binders:params.binders
             };
-
-            var containingContext = {
-                children : [],
-                widget : params.containerWidget
-            }
 
             function modelAccessor(){
                 return params.model;
             }
 
-            var viewContext = this.buildContextTree( params.viewElement, containingContext );
+            if( params.docElement.nodeName !== "view" ){
+                throw new UIBuilder.NoViewElementException( "DOM must contain 1 view element" );
+            }
+
+            var viewContext = this.buildContextTree( params.docElement );
             this.processContextTree( uiContext, modelAccessor, viewContext, 0 );
+
+            return viewContext;
         }
 
         return UIBuilder;

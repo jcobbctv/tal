@@ -1,7 +1,7 @@
 (function () {
 
     require( ["antie/declui/observable-array"], function(ObservableArray){
-        this.ObservableArrayTest = TestCase("ObservableArray");
+        this.ObservableArrayTest = TestCase("DU.ObservableArray");
 
         this.ObservableArrayTest.prototype.setUp = function () {
         };

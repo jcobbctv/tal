@@ -11,19 +11,24 @@ require.def('antie/declui/foreachbinding',
 
             name : "foreach",
 
-            init : function( binderParams ){
+            init : function( binderParams, value ){
                 var context = binderParams.context;
                 context.template = context.children;
+
+                return function( index ){ return value()[ index ]; };
             },
 
-            update : function( binderParams ){
+            update : function( binderParams, value ){
                 var context = binderParams.context;
-                var i;
+                var i,j;
 
                 context.children = [];
-                for( i = 0; i < binderParams.observable().length; i++ ){
-                    context.children.push( context.template );
+                for( i = 0; i < value().length; i++ ){
+                    for( j = 0; j < context.template.length; j++ ){
+                        context.children.push( Object.create( context.template[ j ] ) );
+                    }
                 }
+                return true;
             }
         };
 

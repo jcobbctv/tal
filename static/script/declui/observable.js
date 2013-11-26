@@ -6,6 +6,8 @@ require.def( 'antie/declui/observable',[ 'antie/declui/pubsub'],
             var value  = init;
             var pubsub = new PubSub();
 
+
+
             var observable = function Observable( newValue ){
                 if( newValue != undefined && newValue != value ){
                     value = newValue;
@@ -17,6 +19,7 @@ require.def( 'antie/declui/observable',[ 'antie/declui/pubsub'],
             observable.notify = function(){
                 pubsub.notifySubscribers( observable );
             }
+            observable.pubsub = pubsub;
             observable.subscribe   = pubsub.subscribe.bind( pubsub );
             observable.unsubscribe = pubsub.unsubscribe.bind( pubsub );
 

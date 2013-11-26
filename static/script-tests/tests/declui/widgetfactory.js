@@ -1,11 +1,12 @@
 (function() {
-    this.WidgetFactoryTest = AsyncTestCase("WidgetFactory");
+    this.WidgetFactoryTest = AsyncTestCase("DU.WidgetFactory");
 
     this.WidgetFactoryTest.prototype.setUp = function() {
     };
 
     this.WidgetFactoryTest.prototype.tearDown = function() {
     };
+
 
     this.WidgetFactoryTest.prototype.testCreateWidgetAppendsToParentIfChild = function(queue) {
         queuedApplicationInit( queue, "lib/mockapplication", [ "antie/widgets/button", "antie/widgets/label", "antie/declui/widgetfactory"],
@@ -32,6 +33,22 @@
             assertTrue( widget instanceof Button );
             assertEquals( "buttonid", widget.id );
         });
+    };
+
+    this.WidgetFactoryTest.prototype.testUpdateWidget = function(queue) {
+        queuedApplicationInit( queue, "lib/mockapplication", [ "antie/widgets/button", "antie/widgets/label", "antie/declui/widgetfactory"],
+            function( application,Button,Label,WidgetFactory) {
+
+                var button = new Button();
+                var label = new Label();
+
+                var buttonContext = { widget : button, nodeType : "button", id : "buttonid" };
+                var labelContext = { widget : label, nodeType : "label", id : "labelid", parentContext : buttonContext };
+
+                WidgetFactory.updateWidget( buttonContext );
+
+                assertEquals( 0, button.getChildWidgetCount() );
+            });
     };
 
     this.WidgetFactoryTest.prototype.testCreateButtonCreatesLabelWhenContextHasInnerText = function(queue) {
