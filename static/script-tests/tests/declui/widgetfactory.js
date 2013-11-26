@@ -27,12 +27,35 @@
         queuedApplicationInit( queue, "lib/mockapplication", [ "antie/widgets/button", "antie/widgets/label", "antie/declui/widgetfactory"],
             function( application,Button,Label,WidgetFactory) {
 
-            var context = { nodeType : "button", id : "buttonid" };
-            var widget = WidgetFactory.createWidget( context );
+                var context = { nodeType : "button", id : "buttonid" };
+                var widget = WidgetFactory.createWidget( context );
 
-            assertTrue( widget instanceof Button );
-            assertEquals( "buttonid", widget.id );
-        });
+                assertTrue( widget instanceof Button );
+                assertEquals( "buttonid", widget.id );
+            });
+    };
+
+    this.WidgetFactoryTest.prototype.testCssClassIsAdded = function(queue) {
+        queuedApplicationInit( queue, "lib/mockapplication", [ "antie/widgets/button", "antie/widgets/label", "antie/declui/widgetfactory"],
+            function( application,Button,Label,WidgetFactory) {
+
+                var context = { nodeType : "button", id : "buttonid", class : "acssclass" };
+                var widget = WidgetFactory.createWidget( context );
+
+                assertTrue( widget.hasClass( "acssclass" ) );
+            });
+    };
+
+    this.WidgetFactoryTest.prototype.testCssClassesAreAdded = function(queue) {
+        queuedApplicationInit( queue, "lib/mockapplication", [ "antie/widgets/button", "antie/widgets/label", "antie/declui/widgetfactory"],
+            function( application,Button,Label,WidgetFactory) {
+
+                var context = { nodeType : "button", id : "buttonid", class : "acssclass blahclass" };
+                var widget = WidgetFactory.createWidget( context );
+
+                assertTrue( widget.hasClass( "acssclass" ) );
+                assertTrue( widget.hasClass( "blahclass" ) );
+            });
     };
 
     this.WidgetFactoryTest.prototype.testUpdateWidget = function(queue) {

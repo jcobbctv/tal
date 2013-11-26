@@ -27,6 +27,15 @@ require.def('antie/declui/widgetfactory', [ 'antie/widgets/button', 'antie/widge
                     throw new this.HandlerNotRegistered( "no handler registered for " + context.nodeType );
                 }
 
+                if( context.class ){
+                    var classes = context.class.split( " " );
+                    var i;
+
+                    for( i = 0; i < classes.length; i++ ){
+                        widget.addClass( classes[ i ] );
+                    }
+                }
+
                 if( context.parentContext && context.parentContext.widget ){
                     context.parentContext.widget.appendChildWidget( widget );
                 }

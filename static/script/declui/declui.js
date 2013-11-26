@@ -4,9 +4,10 @@ require.def('antie/declui/declui',
         'antie/declui/uibuilder',
         'antie/declui/widgetfactory',
         'antie/declui/textbinding',
-        'antie/declui/foreachbinding'
+        'antie/declui/foreachbinding',
+        'antie/declui/selectbinding'
     ],
-    function (Application, UIBuilder, WidgetFactory, TextBinding, ForEachBinding ) {
+    function (Application, UIBuilder, WidgetFactory, TextBinding, ForEachBinding, SelectBinding ) {
         var DeclUI = {};
 
 
@@ -14,6 +15,7 @@ require.def('antie/declui/declui',
             var binders = {};
             binders[ TextBinding.name ]    = TextBinding;
             binders[ ForEachBinding.name ] = ForEachBinding;
+            binders[ SelectBinding.name ] = SelectBinding;
             return binders;
         }
 
