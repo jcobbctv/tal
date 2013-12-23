@@ -235,6 +235,75 @@
             });
     };
 
+    this.UIBuilderTest.prototype.testPreprocessContextTreeAddSubscriptionToObservable= function(queue) {
+        queuedRequire(queue, ["antie/declui/uibuilder", "antie/declui/observable"],
+            function(UIBuilder,Observable) {
+
+                var xmlMarkup = '<view id="view"><list class="hlist"><button bind="text:buttonName"></button><button id="button2"></button></list></view>';
+                var domParser = new DOMParser();
+                var doc = domParser.parseFromString( xmlMarkup, "text/xml" );
+                var context = UIBuilder.buildContextTree( doc.documentElement );
+
+                var updateContext;
+                var model = { buttonName : new Observable( "myButton" ) };
+
+                var params = {
+                    widgetFactory : { createWidget : function(){} },
+                    binders : {
+                        text : {
+                            update : function( binderParams, observable ){
+                                updateContext = binderParams.context;
+                            }
+                        }
+                    }
+                };
+                var modelAccessor = function(){
+                    return model;
+                }
+
+                UIBuilder.processContextTree( params, modelAccessor, context );
+
+
+                //jstestdriver.console.log( model.buttonName.pubsub._subscribers[ 0 ].callback.toString() );
+                assertEquals( "updateProxy", model.buttonName.pubsub._subscribers[ 0 ].callback.name );
+            });
+    };
+
+    this.UIBuilderTest.prototype.testPreprocessContextTreeHandleLiteralsInBinding= function(queue) {
+        queuedRequire(queue, ["antie/declui/uibuilder", "antie/declui/observable"],
+            function(UIBuilder,Observable) {
+
+                var binding = "<button bind=text:'buttonName'>"
+                var xmlMarkup = '<view id="view"><list class="hlist">' + binding + '</button><button id="button2"></button></list></view>';
+                var domParser = new DOMParser();
+                var doc = domParser.parseFromString( xmlMarkup, "text/xml" );
+                var context = UIBuilder.buildContextTree( doc.documentElement );
+
+                var updateContext;
+                var model = { buttonName : new Observable( "myButton" ) };
+
+                var params = {
+                    widgetFactory : { createWidget : function(){} },
+                    binders : {
+                        text : {
+                            update : function( binderParams, observable ){
+                                updateContext = binderParams.context;
+                            }
+                        }
+                    }
+                };
+                var modelAccessor = function(){
+                    return model;
+                }
+
+                UIBuilder.processContextTree( params, modelAccessor, context );
+
+
+                //jstestdriver.console.log( model.buttonName.pubsub._subscribers[ 0 ].callback.toString() );
+                assertEquals( "updateProxy", model.buttonName.pubsub._subscribers[ 0 ].callback.name );
+            });
+    };
+
     this.UIBuilderTest.prototype.testPreprocessContextTreeCallsBinderUpdateFirstTimeWithoutObservableUpdate= function(queue) {
         queuedRequire(queue, ["antie/declui/uibuilder", "antie/declui/observable"],
             function(UIBuilder,Observable) {

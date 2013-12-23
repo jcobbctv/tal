@@ -11,6 +11,8 @@ require.def( 'antie/declui/observable-array',[ 'antie/declui/pubsub', 'antie/dec
             var pubsub      = new PubSub();
             var observable  = new Observable( value );
 
+            observable.value = value;
+
             observable.pop = function(){
                 var r = value.pop();
                 this.notify();

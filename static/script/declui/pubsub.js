@@ -46,6 +46,7 @@ require.def('antie/declui/pubsub',[],
         }
 
         PubSub.prototype.notifySubscribers = function( value ){
+            //think about making async
             for( var i = 0; i < this._subscribers.length; i++ ){
                 if( this._subscribers[ i ].callback.length === 1 ){
                     this._subscribers[ i ].callback( value );

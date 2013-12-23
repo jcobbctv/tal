@@ -22,7 +22,10 @@ require.def('antie/declui/uibuilder', [ 'antie/declui/binding-parser' ],
             var context = { children: [], parentContext: parentContext };
 
             context.nodeType = domElement.nodeName;
-            context.text = domElement.textContent;
+
+            if( domElement.children.length === 0 ){
+                context.text = domElement.textContent;
+            }
 
             for (i = 0; i < domElement.attributes.length; i++) {
                 var attrib = domElement.attributes[ i ];
@@ -39,7 +42,7 @@ require.def('antie/declui/uibuilder', [ 'antie/declui/binding-parser' ],
 
         UIBuilder._handleUpdate = function( uiContext, context, childAccessor, binderParams, bindingObject, binding ){
 
-            var updateProxy = function( params, value ){
+            var updateProxy = function updateProxy( params, value ){
                 var i;
                 if( true === uiContext.binders[ binding ].update( params, value ) ){
 
@@ -64,8 +67,12 @@ require.def('antie/declui/uibuilder', [ 'antie/declui/binding-parser' ],
          */
         UIBuilder.processContextTree = function( uiContext, modelAccessor, context, childIndex ) {
             var i;
+
+            //this will be the mode for this binding context
             var model           = modelAccessor(childIndex);
-            var childAccessor   = modelAccessor;
+
+            //any children will also get this unless a binder places a new context
+            var childAccessor   = function(){ return model; };
 
             context.widget = uiContext.widgetFactory.createWidget(context);
 

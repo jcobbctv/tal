@@ -42,6 +42,42 @@
         });
     };
 
+    this.BindingParserTest.prototype.testBindingToNonObservable = function(queue) {
+        expectAsserts(1);
+        queuedRequire(queue, ["antie/declui/binding-parser","antie/declui/observable"], function(BindingParser, Observable) {
+            var model = {
+                mv0 : "one",
+                mv1 : "two",
+                mv2 : "three"
+            }
+
+            var binding = "binding0 : mv0, binding1 : mv1, binding2 : mv2";
+            var expected = { binding0 : model.mv0, binding1 : model.mv1, binding2 : model.mv2 };
+
+            var br = BindingParser.bindingToObject( model, binding );
+
+            assertEquals( expected, br );
+        });
+    };
+
+    this.BindingParserTest.prototype.testBindingWithLiteral = function(queue) {
+        expectAsserts(1);
+        queuedRequire(queue, ["antie/declui/binding-parser","antie/declui/observable"], function(BindingParser, Observable) {
+            var model = {
+                mv0 : "one",
+                mv1 : "two",
+                mv2 : "three"
+            }
+
+            var binding = "binding0 : 'one', binding1 : 'two', binding2 : 'three'";
+            var expected = { binding0 : model.mv0, binding1 : model.mv1, binding2 : model.mv2 };
+
+            var br = BindingParser.bindingToObject( model, binding );
+
+            assertEquals( expected, br );
+        });
+    };
+
     this.BindingParserTest.prototype.testBindingError = function(queue) {
         expectAsserts(1);
         queuedRequire(queue, ["antie/declui/binding-parser","antie/declui/observable"], function(BindingParser, Observable) {

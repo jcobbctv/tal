@@ -9,12 +9,15 @@ require.def( 'antie/declui/observable',[ 'antie/declui/pubsub'],
 
 
             var observable = function Observable( newValue ){
-                if( newValue != undefined && newValue != value ){
+                if( newValue !== undefined && newValue !== value ){
                     value = newValue;
+                    observable.value = newValue;
                     pubsub.notifySubscribers( observable );
                 }
                 return value;
             }
+
+            observable.value = value;
 
             observable.notify = function(){
                 pubsub.notifySubscribers( observable );
