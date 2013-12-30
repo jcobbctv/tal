@@ -104,7 +104,7 @@
         queuedRequire(queue, ["antie/declui/binding-parser","antie/declui/observable"], function(BindingParser, Observable) {
             var model = {
                 mv0 : new Observable( 101 )
-            }
+            };
 
             var withObject = {
                 with0 : "foo",

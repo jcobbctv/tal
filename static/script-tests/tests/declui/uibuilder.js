@@ -271,15 +271,17 @@
 
     this.UIBuilderTest.prototype.testPreprocessContextTreeHandleLiteralsInBinding= function(queue) {
         queuedRequire(queue, ["antie/declui/uibuilder", "antie/declui/observable"],
-            function(UIBuilder,Observable) {
 
-                var binding = "<button bind=text:'buttonName'>"
-                var xmlMarkup = '<view id="view"><list class="hlist">' + binding + '</button><button id="button2"></button></list></view>';
+            function(UIBuilder,Observable) {
+                expectAsserts( 1 );
+
+
+                var xmlMarkup = '<view id="view"><list class="hlist"><button bind="text:\'buttonName\'"></button><button id="button2"></button></list></view>';
                 var domParser = new DOMParser();
                 var doc = domParser.parseFromString( xmlMarkup, "text/xml" );
                 var context = UIBuilder.buildContextTree( doc.documentElement );
 
-                var updateContext;
+                var updateValue;
                 var model = { buttonName : new Observable( "myButton" ) };
 
                 var params = {
@@ -287,7 +289,7 @@
                     binders : {
                         text : {
                             update : function( binderParams, observable ){
-                                updateContext = binderParams.context;
+                                updateValue = observable;
                             }
                         }
                     }
@@ -298,9 +300,44 @@
 
                 UIBuilder.processContextTree( params, modelAccessor, context );
 
+                //jstestdriver.console.log( model.buttonName.pubsub._subscribers[ 0 ].callback.toString() );
+                assertEquals( "buttonName", updateValue() );
+            });
+    };
+
+    this.UIBuilderTest.prototype.testPreprocessContextTreeHandlesNonObservablesInModel= function(queue) {
+        queuedRequire(queue, ["antie/declui/uibuilder", "antie/declui/observable"],
+
+            function(UIBuilder,Observable) {
+                expectAsserts( 1 );
+
+
+                var xmlMarkup = '<view id="view"><list class="hlist"><button bind="text:buttonName"></button><button id="button2"></button></list></view>';
+                var domParser = new DOMParser();
+                var doc = domParser.parseFromString( xmlMarkup, "text/xml" );
+                var context = UIBuilder.buildContextTree( doc.documentElement );
+
+                var updateValue;
+                var model = { buttonName : "buttonName" };
+
+                var params = {
+                    widgetFactory : { createWidget : function(){} },
+                    binders : {
+                        text : {
+                            update : function( binderParams, observable ){
+                                updateValue = observable;
+                            }
+                        }
+                    }
+                };
+                var modelAccessor = function(){
+                    return model;
+                }
+
+                UIBuilder.processContextTree( params, modelAccessor, context );
 
                 //jstestdriver.console.log( model.buttonName.pubsub._subscribers[ 0 ].callback.toString() );
-                assertEquals( "updateProxy", model.buttonName.pubsub._subscribers[ 0 ].callback.name );
+                assertEquals( "buttonName", updateValue() );
             });
     };
 
@@ -418,7 +455,7 @@
                 var btn0 = list.children[ 0 ];
                 var btn1 = list.children[ 1 ];
 
-                assertEquals( modelAccessor, initModelAccessor );
+                assertSame( modelAccessor(), initModelAccessor() );
             });
     };
 
@@ -524,7 +561,7 @@
                 var btn0 = list.children[ 0 ];
                 var btn1 = list.children[ 1 ];
 
-                assertEquals( initModelAccessor, textModelAccessor );
+                assertSame( initModelAccessor(), textModelAccessor() );
             });
     };
 

@@ -54,8 +54,16 @@ require.def('antie/declui/uibuilder', [ 'antie/declui/binding-parser' ],
                 }
             }
 
-            bindingObject[ binding ].subscribe( binderParams, updateProxy );
-            uiContext.binders[ binding ].update( binderParams, bindingObject[ binding ] );
+            //if it has a subscribe function it is an observable
+            if( bindingObject[ binding ].subscribe ){
+                bindingObject[ binding ].subscribe( binderParams, updateProxy );
+                uiContext.binders[ binding ].update( binderParams, bindingObject[ binding ] );
+            }else{
+                //no subscribe - then wrap into observable like accessor
+                uiContext.binders[ binding ].update( binderParams, function() { return bindingObject[ binding ]; } );
+            }
+
+
         }
 
         /**
@@ -68,7 +76,7 @@ require.def('antie/declui/uibuilder', [ 'antie/declui/binding-parser' ],
         UIBuilder.processContextTree = function( uiContext, modelAccessor, context, childIndex ) {
             var i;
 
-            //this will be the mode for this binding context
+            //the model accessor could be a normal accessor or one from a binder to place a new model context
             var model           = modelAccessor(childIndex);
 
             //any children will also get this unless a binder places a new context
