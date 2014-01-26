@@ -124,10 +124,9 @@
                     binders : {}
                 };
                 var createWidgetSpy = sinon.spy( params.widgetFactory, "createWidget" );
-                var modelAccessor = function(){
-                    return {};
-                }
-                UIBuilder.processContextTree( params, modelAccessor, context );
+                var accessorStack = [ function( index ){ return {}; } ];
+
+                UIBuilder.processContextTree( params, accessorStack, context, 0 );
 
                 var view = context;
                 var list = view.children[ 0 ];
@@ -168,18 +167,16 @@
                 var updateSpy     = sinon.spy( params.binders.text, "update" );
                 var pctSpy        = sinon.spy( UIBuilder, "processContextTree" );
                 var model         = { buttonName : new Observable( "myButton" ) };
-                var modelAccessor = function(){
-                    return model;
-                }
+                var accessorStack = [ function( index ){ return model; } ];
 
-                UIBuilder.processContextTree( params, modelAccessor, context );
+                UIBuilder.processContextTree( params, accessorStack, context, 0 );
 
                 var view = context;
                 var list = view.children[ 0 ];
                 var btn0 = list.children[ 0 ];
                 var btn1 = list.children[ 1 ];
 
-                modelAccessor().buttonName( "newName" );
+                accessorStack[0]().buttonName( "newName" );
 
                 assertTrue( initSpy.calledOnce );
                 assertTrue( pctSpy.calledThrice );
@@ -217,18 +214,17 @@
                     }
                 };
                 var model = { buttonName : new Observable( "myButton" ) };
-                var modelAccessor = function(){
-                    return model;
-                }
+                var accessorStack = [ function( index ){ return model; } ];
 
-                UIBuilder.processContextTree( params, modelAccessor, context );
+
+                UIBuilder.processContextTree( params, accessorStack, context, 0 );
 
                 var view = context;
                 var list = view.children[ 0 ];
                 var btn0 = list.children[ 0 ];
                 var btn1 = list.children[ 1 ];
 
-                modelAccessor().buttonName( "newName" );
+                accessorStack[0]().buttonName( "newName" );
 
                 assertEquals( params.widgetFactory, initWidgetFactory );
                 assertEquals( params.widgetFactory, updateWidgetFactory );
@@ -257,12 +253,9 @@
                         }
                     }
                 };
-                var modelAccessor = function(){
-                    return model;
-                }
+                var accessorStack = [ function( index ){ return model; } ];
 
-                UIBuilder.processContextTree( params, modelAccessor, context );
-
+                UIBuilder.processContextTree( params, accessorStack, context, 0 );
 
                 //jstestdriver.console.log( model.buttonName.pubsub._subscribers[ 0 ].callback.toString() );
                 assertEquals( "updateProxy", model.buttonName.pubsub._subscribers[ 0 ].callback.name );
@@ -294,11 +287,8 @@
                         }
                     }
                 };
-                var modelAccessor = function(){
-                    return model;
-                }
-
-                UIBuilder.processContextTree( params, modelAccessor, context );
+                var accessorStack = [ function( index ){ return model; } ];
+                UIBuilder.processContextTree( params, accessorStack, context, 0 );
 
                 //jstestdriver.console.log( model.buttonName.pubsub._subscribers[ 0 ].callback.toString() );
                 assertEquals( "buttonName", updateValue() );
@@ -330,11 +320,9 @@
                         }
                     }
                 };
-                var modelAccessor = function(){
-                    return model;
-                }
+                var accessorStack = [ function( index ){ return model; } ];
 
-                UIBuilder.processContextTree( params, modelAccessor, context );
+                UIBuilder.processContextTree( params, accessorStack, context, 0 );
 
                 //jstestdriver.console.log( model.buttonName.pubsub._subscribers[ 0 ].callback.toString() );
                 assertEquals( "buttonName", updateValue() );
@@ -363,18 +351,17 @@
                         }
                     }
                 };
-                var modelAccessor = function(){
-                    return model;
-                }
+                var accessorStack = [ function( index ){ return model; } ];
 
-                UIBuilder.processContextTree( params, modelAccessor, context );
+
+                UIBuilder.processContextTree( params, accessorStack, context, 0 );
 
                 var view = context;
                 var list = view.children[ 0 ];
                 var btn0 = list.children[ 0 ];
                 var btn1 = list.children[ 1 ];
 
-                modelAccessor().buttonName( "newName" );
+                accessorStack[0]().buttonName( "newName" );
 
                 assertEquals( btn0, updateContext );
             });
@@ -403,11 +390,9 @@
                 };
 
                 var model = { buttonName : new Observable( "myButton" ) };
-                var modelAccessor = function(){
-                    return model;
-                }
+                var accessorStack = [ function( index ){ return model; } ];
 
-                UIBuilder.processContextTree( params, modelAccessor, context );
+                UIBuilder.processContextTree( params, accessorStack, context, 0 );
 
                 var view = context;
                 var list = view.children[ 0 ];
@@ -444,18 +429,16 @@
                 };
 
                 var model = { buttonName : new Observable( "myButton" ) };
-                var modelAccessor = function(){
-                    return model;
-                }
+                var accessorStack = [ function( index ){ return model; } ];
 
-                UIBuilder.processContextTree( params, modelAccessor, context );
+                UIBuilder.processContextTree( params, accessorStack, context, 0 );
 
                 var view = context;
                 var list = view.children[ 0 ];
                 var btn0 = list.children[ 0 ];
                 var btn1 = list.children[ 1 ];
 
-                assertSame( modelAccessor(), initModelAccessor() );
+                assertSame( accessorStack[0](), initModelAccessor() );
             });
     };
 
@@ -463,7 +446,7 @@
         queuedRequire(queue, ["antie/declui/uibuilder", "antie/declui/observable", "antie/declui/observable-array"],
             function(UIBuilder,Observable,ObservableArray) {
 
-                var xmlMarkup = '<view id="view"><list bind="forEach: buttons" class="hlist"><button bind="text:buttonName"></button><button id="button2"></button></list></view>';
+                var xmlMarkup = '<view id="view"><list bind="forEach: buttons" class="hlist"><button bind="text:buttonName"></button><button id="button2" bind="text:$parent.parentName"></button></list></view>';
                 var domParser = new DOMParser();
                 var doc = domParser.parseFromString( xmlMarkup, "text/xml" );
                 var context = UIBuilder.buildContextTree( doc.documentElement );
@@ -473,7 +456,8 @@
                 var updateContext;
                 var forEachModelAccessor;
 
-                var model = { buttons : new ObservableArray( [
+                var model = { parentName : "parentName",
+                    buttons : new ObservableArray( [
                     { buttonName : new Observable( "button1" ) },
                     { buttonName : new Observable( "button2" ) },
                 ] ) };
@@ -491,24 +475,16 @@
                         },
                         text : {
                             init : function( binderParams, value ){
+                                jstestdriver.console.log( value() );
                                 initModelAccessor = binderParams.modelAccessor;
-                            },
+                            }
                         }
                     }
                 };
 
+                var accessorStack = [ function( index ){ return model; } ];
 
-                var modelAccessor = function( index ){
-                    return model;
-                }
-
-                UIBuilder.processContextTree( params, modelAccessor, context );
-
-
-                var view = context;
-                var list = view.children[ 0 ];
-                var btn0 = list.children[ 0 ];
-                var btn1 = list.children[ 1 ];
+                UIBuilder.processContextTree( params, accessorStack, context, 0 );
 
                 assertEquals( forEachModelAccessor, initModelAccessor );
             });
@@ -549,11 +525,10 @@
                     { buttonName : new Observable( "button1" ) },
                     { buttonName : new Observable( "button2" ) }
                 ]  };
-                var modelAccessor = function( index ){
-                    return model;
-                }
 
-                UIBuilder.processContextTree( params, modelAccessor, context );
+                var accessorStack = [ function( index ){ return model; } ];
+
+                UIBuilder.processContextTree( params, accessorStack, context, 0 );
 
 
                 var view = context;
@@ -602,13 +577,12 @@
                         { buttonName : new Observable( "button1" ) },
                         { buttonName : new Observable( "button2" ) }
                     ] )  };
-                var modelAccessor = function( index ){
-                    return model;
-                }
+                var accessorStack = [ function( index ){ return model; } ];
+
 
                 var updateWidgetSpy = sinon.spy( params.widgetFactory, "updateWidget" );
 
-                UIBuilder.processContextTree( params, modelAccessor, context );
+                UIBuilder.processContextTree( params, accessorStack, context, 0 );
 
                 model.buttons.pop();
 
@@ -636,13 +610,11 @@
                     binders : {}
                 };
                 var model = { variable : 1 };
-                var modelAccessor = function(){
-                    return model;
-                }
+                var accessorStack = [ function( index ){ return model; } ];
 
                 var exceptionThrown = false;
                 try{
-                    UIBuilder.processContextTree( params, modelAccessor, context )
+                    UIBuilder.processContextTree( params, accessorStack, context, 0 )
                 }
                 catch( x ){
                     if( x instanceof UIBuilder.UnknownBindingException ){
@@ -668,9 +640,7 @@
                     item : new Observable( 101 )
                 };
 
-                function modelAccessor(){
-                    return model;
-                }
+                var accessorStack = [ function( index ){ return model; } ];
 
                 var exceptionThrown = false;
                 try{

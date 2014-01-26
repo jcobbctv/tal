@@ -33,6 +33,14 @@
                 mv2 : new Observable( 303 )
             }
 
+            if( Observable.isObservableType( model.mv0 ) ){
+                jstestdriver.console.log( model.mv0.constructor );
+                jstestdriver.console.log( "THIS IS OBSERVABLE" );
+            }else{
+                jstestdriver.console.log( "THIS IS NOT OBSERVABLE" );
+
+            }
+
             var binding = "binding0 : mv0, binding1 : mv1, binding2 : mv2";
             var expected = { binding0 : model.mv0, binding1 : model.mv1, binding2 : model.mv2 };
 

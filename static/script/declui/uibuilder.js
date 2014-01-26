@@ -40,7 +40,7 @@ require.def('antie/declui/uibuilder', [ 'antie/declui/binding-parser' ],
             return context;
         }
 
-        UIBuilder._handleUpdate = function( uiContext, context, childAccessor, binderParams, bindingObject, binding ){
+        UIBuilder._handleUpdate = function( uiContext, context, accessorStack, binderParams, bindingObject, binding ){
 
             var updateProxy = function updateProxy( params, value ){
                 var i;
@@ -49,7 +49,7 @@ require.def('antie/declui/uibuilder', [ 'antie/declui/binding-parser' ],
                     uiContext.widgetFactory.updateWidget( context );
 
                     for (i = 0; i < context.children.length; i++) {
-                        UIBuilder.processContextTree( uiContext, childAccessor, context.children[ i ], i );
+                        UIBuilder.processContextTree( uiContext, accessorStack, context.children[ i ], i );
                     }
                 }
             }
@@ -69,42 +69,40 @@ require.def('antie/declui/uibuilder', [ 'antie/declui/binding-parser' ],
         /**
          *
          * @param uiContext
-         * @param modelAccessor
+         * @param accessorStack
          * @param context
          * @param childIndex
          */
-        UIBuilder.processContextTree = function( uiContext, modelAccessor, context, childIndex ) {
+        UIBuilder.processContextTree = function( uiContext, accessorStack, context, childIndex ) {
             var i;
 
             //the model accessor could be a normal accessor or one from a binder to place a new model context
-            var model           = modelAccessor(childIndex);
-
-            //any children will also get this unless a binder places a new context
-            var childAccessor   = function(){ return model; };
+            var model           = accessorStack[0](childIndex);
+            var parentModel     = accessorStack[1] ? accessorStack[1]() : undefined;
 
             context.widget = uiContext.widgetFactory.createWidget(context);
 
             if( context.bind ){
-                var bindingObject = BindingParser.bindingToObject(model, context.bind);
+                var bindingObject = BindingParser.bindingToObject( parentModel, model, context.bind );
 
                 for (var binding in bindingObject) {
                     if ( bindingObject.hasOwnProperty( binding ) &&  uiContext.binders[ binding ] ) {
 
                         var binderParams = {
                           context       : context,
-                          modelAccessor : modelAccessor,
+                          modelAccessor : accessorStack[ 0 ],
                           widgetFactory : uiContext.widgetFactory
                         };
 
                         if( uiContext.binders[ binding ].init ) {
                             var returnedAccessor = uiContext.binders[ binding ].init( binderParams, bindingObject[ binding ] );
                             if( returnedAccessor ){
-                                childAccessor = returnedAccessor;
+                                accessorStack.unshift( returnedAccessor );
                             }
                         }
 
                         if (uiContext.binders[ binding ].update ) {
-                            this._handleUpdate( uiContext, context, childAccessor, binderParams, bindingObject, binding );
+                            this._handleUpdate( uiContext, context, accessorStack, binderParams, bindingObject, binding );
                         }
                     } else {
                         throw new UIBuilder.UnknownBindingException("unknown binding:"  + binding );
@@ -112,8 +110,8 @@ require.def('antie/declui/uibuilder', [ 'antie/declui/binding-parser' ],
                 }
             }
 
-            for (i = 0; i < context.children.length; i++) {
-                UIBuilder.processContextTree( uiContext, childAccessor, context.children[ i ], i );
+            for( i = 0; i < context.children.length; i++ ) {
+                UIBuilder.processContextTree( uiContext, accessorStack, context.children[ i ], i );
             }
         }
 
