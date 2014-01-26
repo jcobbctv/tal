@@ -10,31 +10,30 @@ require.def( 'antie/declui/binding-parser',
         BindingParser.ERROR_NONE        = 0;
         BindingParser.ERROR_PARSING     = 1;
 
-        BindingParser.bindingToObject = function( dataModelConstants, dataModel, bindingText ){
+        BindingParser.bindingToObject = function( parentModel, dataModel, bindingText ){
 
             if( arguments.length === 2 ){
                 bindingText = dataModel;
-                dataModel = dataModelConstants;
-                dataModelConstants = {};
+                dataModel = parentModel;
+                parentModel = undefined;
             }
 
             var source =
+                "var parentWrapper = { $parent : parentModel };" +
                 "var bindingObject;" +
-                    "with(withObject){" +
-                        "with(model){" +
-                            "bindingObject = ({"  + bindingText + "})" +
-                        "}" +
-                    "}; " +
+                "with(parentWrapper){" +
+                    "with(model){" +
+                        "bindingObject = ({"  + bindingText + "})" +
+                    "}};" +
                 "return bindingObject;";
 
             var bindingObject;
             try{
-                var bindingFunc = new Function( "model", "withObject", source );
-                bindingObject = bindingFunc( dataModel, dataModelConstants, bindingText );
+                var bindingFunc = new Function( "parentModel", "model", source );
+                bindingObject = bindingFunc( parentModel, dataModel, bindingText );
             }
             catch( x ){
                 var bx = new BindingParser.BindingParserException(x.message);
-
                 throw bx;
             }
             return bindingObject;

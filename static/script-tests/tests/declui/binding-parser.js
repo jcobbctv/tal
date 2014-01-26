@@ -99,24 +99,27 @@
         });
     };
 
-    this.BindingParserTest.prototype.testBindingWith = function(queue) {
+    this.BindingParserTest.prototype.testBindingHasParentMember = function(queue) {
         expectAsserts(1);
         queuedRequire(queue, ["antie/declui/binding-parser","antie/declui/observable"], function(BindingParser, Observable) {
             var model = {
                 mv0 : new Observable( 101 )
             };
 
-            var withObject = {
+            var parentModel = {
                 with0 : "foo",
                 with1 : "bar"
             };
 
-            var binding = "binding0 : with0, binding1 : with1, binding2 : mv0";
-            var expected = { error: BindingParser.ERROR_NONE, bindingObject : { binding0 : withObject.with0, binding1 : withObject.with1, binding2 : model.mv0 } };
+            var binding = "binding0 : $parent.with0, binding1 : $parent.with1, binding2 : mv0";
+            var bindingObject = BindingParser.bindingToObject( parentModel, model, binding );
 
-            var bindingObject = BindingParser.bindingToObject( withObject, model, binding );
-
-            assertEquals( { binding0 : withObject.with0, binding1 : withObject.with1, binding2 : model.mv0 }, bindingObject );
+            var expected = {
+                binding0: parentModel.with0,
+                binding1: parentModel.with1,
+                binding2: model.mv0
+            };
+            assertEquals(expected, bindingObject );
         });
     };
 })();
