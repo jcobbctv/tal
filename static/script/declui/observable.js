@@ -5,9 +5,6 @@ require.def( 'antie/declui/observable',[ 'antie/declui/pubsub'],
         var ObservableClass = function ObsCstr( init ){
             var value  = init;
             var pubsub = new PubSub();
-
-
-
             var observable = function Observable( newValue ){
                 if( newValue !== undefined && newValue !== value ){
                     value = newValue;
@@ -28,6 +25,22 @@ require.def( 'antie/declui/observable',[ 'antie/declui/pubsub'],
 
             return observable;
         };
+
+        ObservableClass.isObservableType = function( thing ){
+            if( thing.pubsub && thing.pubsub instanceof PubSub )
+                return true;
+
+            return false;
+        }
+
+        ObservableClass.getValue = function( thing ){
+            if( ObservableClass.isObservableType( thing ) ){
+                return thing();
+            }
+
+            return thing;
+        }
+
 
         return ObservableClass;
     }

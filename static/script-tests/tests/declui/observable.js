@@ -49,6 +49,31 @@
         });
     };
 
+    this.ObservableTest.prototype.testIsObservableType = function(queue) {
+        expectAsserts(2);
+        queuedRequire(queue, ["antie/declui/observable","antie/class"], function(Observable, Class) {
+            var o = new Observable();
+            o( "badoooosh" );
+
+            var no = 1;
+
+            assertEquals( true, Observable.isObservableType( o ) );
+            assertEquals( false, Observable.isObservableType( no ) );
+        });
+    };
+
+    this.ObservableTest.prototype.testGetValue = function(queue) {
+        expectAsserts(2);
+        queuedRequire(queue, ["antie/declui/observable","antie/class"], function(Observable, Class) {
+            var o = new Observable( 101 );
+
+            var no = 202;
+
+            assertEquals( 101, Observable.getValue( o ) );
+            assertEquals( 202, Observable.getValue( no ) );
+        });
+    };
+
     this.ObservableTest.prototype.testSubscribeWithContextAndCallbackNotifiesWithContextAndObservable = function(queue) {
         expectAsserts(3);
         queuedRequire(queue, ["antie/declui/observable","antie/class"], function(Observable, Class) {
