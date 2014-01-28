@@ -1,12 +1,28 @@
 (function () {
 
-    require( ["antie/declui/observable-array"], function(ObservableArray){
+    require( ["antie/declui/observable-array", "antie/declui/observable"], function(ObservableArray, Observable ){
         this.ObservableArrayTest = TestCase("DU.ObservableArray");
 
         this.ObservableArrayTest.prototype.setUp = function () {
         };
 
         this.ObservableArrayTest.prototype.tearDown = function () {
+        };
+
+        this.ObservableArrayTest.prototype.testIsObservableType = function () {
+            var o = new ObservableArray();
+            var no = [];
+
+            assertEquals( true, Observable.isObservableType( o ) );
+            assertEquals( false, Observable.isObservableType( no ) );
+        };
+
+        this.ObservableArrayTest.prototype.testIsGetValue = function () {
+            var o = new ObservableArray( [ 101 ]);
+            var no = [ 202 ];
+
+            assertEquals( [101], Observable.getValue( o ) );
+            assertEquals( [202], Observable.getValue( no ) );
         };
 
         this.ObservableArrayTest.prototype.testWithNoInitVariable = function () {
