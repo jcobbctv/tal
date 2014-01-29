@@ -1,5 +1,5 @@
-require.def('antie/declui/selectbinding',
-    function() {
+require.def('antie/declui/selectbinding', [ 'antie/declui/observable' ],
+    function( Observable ) {
 
         var SelectBinding = {
 //            var binderParams = {
@@ -12,13 +12,15 @@ require.def('antie/declui/selectbinding',
             name : "select",
 
             init : function( binderParams, value ){
-                binderParams.context.onSelect = value();
-                binderParams.context.widget.addEventListener( "select", value() );
+                value = Observable.getValue( value );
+                binderParams.context.onSelect = value;
+                binderParams.context.widget.addEventListener( "select", value );
             },
 
             update : function( binderParams, value ){
+                value = Observable.getValue( value );
                 binderParams.context.widget.removeEventListener( "select", binderParams.context.onSelect );
-                binderParams.context.widget.addEventListener( "select", value() );
+                binderParams.context.widget.addEventListener( "select", value );
             }
         };
 

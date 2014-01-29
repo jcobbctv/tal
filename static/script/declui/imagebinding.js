@@ -1,5 +1,5 @@
-require.def('antie/declui/imagebinding',
-    function() {
+require.def('antie/declui/imagebinding', [ 'antie/declui/observable' ],
+    function( Observable ) {
 
         var ImageBinding = {
 //            var binderParams = {
@@ -12,8 +12,9 @@ require.def('antie/declui/imagebinding',
             name : "image",
 
             update : function( binderParams, value ){
+                value = Observable.getValue( value )
                 if( binderParams.context.widget.setSrc ){
-                    binderParams.context.widget.setSrc( value() );
+                    binderParams.context.widget.setSrc( value );
                     return;
                 }
             }

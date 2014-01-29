@@ -63,7 +63,7 @@
     };
 
     this.ObservableTest.prototype.testGetValue = function(queue) {
-        expectAsserts(2);
+        expectAsserts(3);
         queuedRequire(queue, ["antie/declui/observable","antie/class"], function(Observable, Class) {
             var o = new Observable( 101 );
 
@@ -71,6 +71,7 @@
 
             assertEquals( 101, Observable.getValue( o ) );
             assertEquals( 202, Observable.getValue( no ) );
+            assertEquals( undefined, Observable.getValue( undefined ) );
         });
     };
 

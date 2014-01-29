@@ -1,5 +1,5 @@
-require.def('antie/declui/foreachbinding',
-    function() {
+require.def('antie/declui/foreachbinding', [ 'antie/declui/observable' ],
+    function( Observable ) {
 
         var ForEachBinding = {
 //            var binderParams = {
@@ -44,18 +44,20 @@ require.def('antie/declui/foreachbinding',
             },
 
             init : function( binderParams, value ){
+                value = Observable.getValue( value );
                 var context = binderParams.context;
                 context.template = context.children;
 
-                return function( index ){ return value()[ index ]; };
+                return function( index ){ return value[ index ]; };
             },
 
             update : function( binderParams, value ){
+                value = Observable.getValue( value );
                 var context = binderParams.context;
                 var i,j;
 
                 context.children = [];
-                for( i = 0; i < value().length; i++ ){
+                for( i = 0; i < value.length; i++ ){
                     for( j = 0; j < context.template.length; j++ ){
                         context.children.push( this.cloneContext( context.template[ j ], context.template[ j ].parentContext ) );
                     }

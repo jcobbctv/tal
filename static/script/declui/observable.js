@@ -27,7 +27,7 @@ require.def( 'antie/declui/observable',[ 'antie/declui/pubsub'],
         };
 
         ObservableClass.isObservableType = function( thing ){
-            if( thing.pubsub && thing.pubsub instanceof PubSub )
+            if( thing && thing.pubsub && thing.pubsub instanceof PubSub )
                 return true;
 
             return false;
