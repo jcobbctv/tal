@@ -1,5 +1,5 @@
-require.def('antie/declui/uibuilder', [ 'antie/declui/binding-parser' ],
-    function (BindingParser) {
+require.def('antie/declui/uibuilder', [ 'antie/declui/binding-parser', 'antie/declui/observable' ],
+    function (BindingParser, Observable) {
 
         var UIBuilder = {};
 
@@ -55,15 +55,13 @@ require.def('antie/declui/uibuilder', [ 'antie/declui/binding-parser' ],
             }
 
             //if it has a subscribe function it is an observable
-            if( bindingObject[ binding ].subscribe ){
+            if( Observable.isObservableType( bindingObject[ binding ] ) ){
                 bindingObject[ binding ].subscribe( binderParams, updateProxy );
                 uiContext.binders[ binding ].update( binderParams, bindingObject[ binding ] );
             }else{
                 //no subscribe - then wrap into observable like accessor
-                uiContext.binders[ binding ].update( binderParams, function() { return bindingObject[ binding ]; } );
+                uiContext.binders[ binding ].update( binderParams, bindingObject[ binding ] );
             }
-
-
         }
 
         /**
