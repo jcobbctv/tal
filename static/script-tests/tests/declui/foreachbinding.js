@@ -147,13 +147,13 @@
                 var binderParams = {};
                 binderParams.context = hlist_context;
 
-                var accessor = ForEachBinding.init( binderParams, observableList );
+                var model = ForEachBinding.init( binderParams, observableList );
                 ForEachBinding.update( binderParams, observableList );
 
-                assertEquals( "1", accessor(0).name() );
-                assertEquals( "2", accessor(1).name() );
-                assertEquals( "3", accessor(2).name() );
-                assertEquals( "4", accessor(3).name() );
+                assertEquals( "1", model[0].name() );
+                assertEquals( "2", model[1].name() );
+                assertEquals( "3", model[2].name() );
+                assertEquals( "4", model[3].name() );
 
             });
     };

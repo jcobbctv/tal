@@ -1,5 +1,5 @@
-require.def('antie/declui/uibuilder', [ 'antie/declui/binding-parser', 'antie/declui/observable' ],
-    function (BindingParser, Observable) {
+require.def('antie/declui/uibuilder', [ 'antie/declui/binding-parser', 'antie/declui/observable', 'antie/declui/bindingdata-stack' ],
+    function (BindingParser, Observable, BindingDataStack ) {
 
         var UIBuilder = {};
 
@@ -40,7 +40,7 @@ require.def('antie/declui/uibuilder', [ 'antie/declui/binding-parser', 'antie/de
             return context;
         }
 
-        UIBuilder._handleUpdate = function( uiContext, context, childAccessor, binderParams, bindingObject, binding ){
+        UIBuilder._handleUpdate = function( uiContext, context, bindingDataStack, binderParams, bindingObject, binding ){
 
             var updateProxy = function updateProxy( params, value ){
                 var i;
@@ -48,8 +48,14 @@ require.def('antie/declui/uibuilder', [ 'antie/declui/binding-parser', 'antie/de
 
                     uiContext.widgetFactory.updateWidget( context );
 
+                    var bindingModel = bindingDataStack.getCurrentModel();
+
                     for (i = 0; i < context.children.length; i++) {
-                        UIBuilder.processContextTree( uiContext, childAccessor, context.children[ i ], i );
+                        if( bindingModel instanceof Array ){
+                            UIBuilder.processContextTree( uiContext, bindingDataStack.extend( bindingModel[ i ] ), context.children[ i ] );
+                        }else{
+                            UIBuilder.processContextTree( uiContext, bindingDataStack, context.children[ i ] );
+                        }
                     }
                 }
             }
@@ -71,38 +77,36 @@ require.def('antie/declui/uibuilder', [ 'antie/declui/binding-parser', 'antie/de
          * @param context
          * @param childIndex
          */
-        UIBuilder.processContextTree = function( uiContext, modelAccessor, context, childIndex ) {
+        UIBuilder.processContextTree = function( uiContext, bindingDataStack, context ) {
             var i;
 
-            //the model accessor could be a normal accessor or one from a binder to place a new model context
-            var model           = modelAccessor(childIndex);
-
-            //any children will also get this unless a binder places a new context
-            var childAccessor   = function(){ return model; };
+            var newBindingData;
 
             context.widget = uiContext.widgetFactory.createWidget(context);
 
             if( context.bind ){
-                var bindingObject = BindingParser.bindingToObject(model, context.bind);
+                var bindingObject = BindingParser.bindingToObject( bindingDataStack.getCurrentModel(), context.bind);
 
                 for (var binding in bindingObject) {
                     if ( bindingObject.hasOwnProperty( binding ) &&  uiContext.binders[ binding ] ) {
 
                         var binderParams = {
                           context       : context,
-                          modelAccessor : modelAccessor,
+                          model         : bindingDataStack.getCurrentModel(),
                           widgetFactory : uiContext.widgetFactory
                         };
 
                         if( uiContext.binders[ binding ].init ) {
-                            var returnedAccessor = uiContext.binders[ binding ].init( binderParams, bindingObject[ binding ] );
-                            if( returnedAccessor ){
-                                childAccessor = returnedAccessor;
-                            }
+                            newBindingData = uiContext.binders[ binding ].init( binderParams, bindingObject[ binding ] );
                         }
 
                         if (uiContext.binders[ binding ].update ) {
-                            this._handleUpdate( uiContext, context, childAccessor, binderParams, bindingObject, binding );
+
+                            if( newBindingData ){
+                                this._handleUpdate( uiContext, context, bindingDataStack.extend( newBindingData ), binderParams, bindingObject, binding );
+                            }else{
+                                this._handleUpdate( uiContext, context, bindingDataStack, binderParams, bindingObject, binding );
+                            }
                         }
                     } else {
                         throw new UIBuilder.UnknownBindingException("unknown binding:"  + binding );
@@ -111,7 +115,15 @@ require.def('antie/declui/uibuilder', [ 'antie/declui/binding-parser', 'antie/de
             }
 
             for (i = 0; i < context.children.length; i++) {
-                UIBuilder.processContextTree( uiContext, childAccessor, context.children[ i ], i );
+                if( newBindingData ){
+                    if( newBindingData instanceof Array ){
+                        UIBuilder.processContextTree( uiContext, bindingDataStack.extend( newBindingData[ i ]    ), context.children[ i ] );
+                    }else{
+                        UIBuilder.processContextTree( uiContext, bindingDataStack.extend( newBindingData ), context.children[ i ] );
+                    }
+                }else{
+                    UIBuilder.processContextTree( uiContext, bindingDataStack, context.children[ i ] );
+                }
             }
         }
 
@@ -128,16 +140,14 @@ require.def('antie/declui/uibuilder', [ 'antie/declui/binding-parser', 'antie/de
                 binders:params.binders
             };
 
-            function modelAccessor(){
-                return params.model;
-            }
-
             if( params.docElement.nodeName !== "view" ){
                 throw new UIBuilder.NoViewElementException( "DOM must contain 1 view element" );
             }
 
             var viewContext = this.buildContextTree( params.docElement );
-            this.processContextTree( uiContext, modelAccessor, viewContext, 0 );
+            var bindingDataStack = new BindingDataStack( params.model );
+
+            this.processContextTree( uiContext, bindingDataStack, viewContext, 0 );
 
             return viewContext;
         }

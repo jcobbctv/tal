@@ -48,7 +48,7 @@ require.def('antie/declui/foreachbinding', [ 'antie/declui/observable' ],
                 var context = binderParams.context;
                 context.template = context.children;
 
-                return function( index ){ return value[ index ]; };
+                return value;
             },
 
             update : function( binderParams, value ){
