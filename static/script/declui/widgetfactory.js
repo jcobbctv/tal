@@ -67,7 +67,10 @@ require.def('antie/declui/widgetfactory', [ 'antie/widgets/button', 'antie/widge
         } );
 
         WidgetFactory.registerHandler( "image", function( context ){
-            return new Image( context.id, context.src, context.size );
+            var size = parseInt( context.size, 10 );
+            var widthHeight = { width : size, height : size };
+
+            return new Image( context.id, context.src, widthHeight );
         } );
 
         WidgetFactory.registerHandler( "hlist", function( context ){

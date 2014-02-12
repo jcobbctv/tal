@@ -123,7 +123,8 @@
                 assertTrue( "Must Be Instance Of Image", widget instanceof Image );
                 assertEquals( "Must Have Correct ID", "imageid", widget.id );
                 assertEquals( "Must Have Correct Src", "/path/to/image", widget._src );
-                assertEquals( "Must Have Correct Size", 100, widget._size );
+                assertEquals( "Must Have Correct Size", 100, widget._size.width );
+                assertEquals( "Must Have Correct Size", 100, widget._size.height );
             });
     };
 
