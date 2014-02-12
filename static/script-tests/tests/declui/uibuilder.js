@@ -9,7 +9,7 @@
             var domParser = new DOMParser();
             var doc = domParser.parseFromString( xmlMarkup, "text/xml" );
 
-            var context = UIBuilder.buildContextTree(  doc.documentElement );
+            var context = UIBuilder.buildContextTree( doc.documentElement );
 
             var view = context;
             var list = view.children[ 0 ];
@@ -46,7 +46,6 @@
                 var btn1 = list.children[ 1 ];
 
                 assertEquals( "INNERTEXT", btn0.text );
-
             });
     };
 
@@ -480,6 +479,45 @@
             });
     };
 
+    this.UIBuilderTest.prototype.testPreprocessContextBindingCanUseParent = function(queue) {
+        queuedRequire(queue, ["antie/declui/uibuilder", "antie/declui/observable", "antie/declui/observable-array", "antie/declui/bindingdata-stack"],
+            function(UIBuilder,Observable,ObservableArray, BindingDataStack ) {
+
+                var xmlMarkup = '<view id="view"><list bind="forEach: buttons" class="hlist"><button bind="text:$parent.buttonName"></button></list></view>';
+                var domParser = new DOMParser();
+                var doc = domParser.parseFromString( xmlMarkup, "text/xml" );
+                var context = UIBuilder.buildContextTree( doc.documentElement );
+
+                var model = { buttonName : "parentButton",
+                    buttons : new ObservableArray( [
+                    { buttonName : new Observable( "button1" ) },
+                    { buttonName : new Observable( "button2" ) },
+                ] ) };
+
+                var textValue;
+
+                var params = {
+                    widgetFactory : { createWidget : function(){} },
+                    binders : {
+                        forEach : {
+                            init : function( binderParams, value ){
+                                return Observable.getValue( value );
+                            }
+                        },
+                        text : {
+                            init : function( binderParams, value ){
+                                textValue = Observable.getValue( value );
+                            }
+                        }
+                    }
+                };
+
+                UIBuilder.processContextTree( params, new BindingDataStack( model ), context );
+
+                assertEquals( "parentButton", textValue );
+            });
+    };
+
     this.UIBuilderTest.prototype.testPreprocessContextTreeBinderInitChildrenGetsUnmodifiedModelAccessorIfNoReturn = function(queue) {
         queuedRequire(queue, ["antie/declui/uibuilder", "antie/declui/observable", "antie/declui/bindingdata-stack"],
             function(UIBuilder,Observable,BindingDataStack) {
@@ -676,7 +714,7 @@
 
                 assertTrue( pctMock.calledOnce );
                 assertEquals( uiContext, pctMock.args[ 0 ][ 0 ] );
-                assertEquals( bindingStack.getCurrentModel(), pctMock.args[ 0 ][ 1 ].getCurrentModel() );
+                assertEquals( bindingStack.getModel(), pctMock.args[ 0 ][ 1 ].getModel() );
                 assertEquals( viewContext, pctMock.args[ 0 ][ 2 ] );
                 assertEquals( 0, pctMock.args[ 0 ][ 3 ] );
 

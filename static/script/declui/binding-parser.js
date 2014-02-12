@@ -5,18 +5,15 @@ require.def( 'antie/declui/binding-parser',
 
         BindingParser.BindingParserException = function BindingParserException( message ){
             this.message = message;
-        }
+        };
 
         BindingParser.ERROR_NONE        = 0;
         BindingParser.ERROR_PARSING     = 1;
 
-        BindingParser.bindingToObject = function( parentModel, dataModel, bindingText ){
+        BindingParser.bindingToObject = function( bindingDataStack, bindingText ){
 
-            if( arguments.length === 2 ){
-                bindingText = dataModel;
-                dataModel = parentModel;
-                parentModel = undefined;
-            }
+            var parentModel = bindingDataStack.getParentModel();
+            var dataModel = bindingDataStack.getModel();
 
             var source =
                 "var parentWrapper = { $parent : parentModel };" +

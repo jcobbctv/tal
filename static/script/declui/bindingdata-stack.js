@@ -10,9 +10,17 @@ require.def('antie/declui/bindingdata-stack',
                 dataStack = [ init ];
             }
 
-            this.getCurrentModel = function(){
+            this.getModel = function(){
                 return dataStack[ 0 ];
             };
+
+            this.getParentModel = function(){
+                if( dataStack.length < 2 ){
+                    return undefined;
+                }else{
+                    return dataStack[ 1 ];
+                }
+            }
 
             this.getStack = function(){
                 return dataStack;

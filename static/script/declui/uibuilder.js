@@ -48,7 +48,7 @@ require.def('antie/declui/uibuilder', [ 'antie/declui/binding-parser', 'antie/de
 
                     uiContext.widgetFactory.updateWidget( context );
 
-                    var bindingModel = bindingDataStack.getCurrentModel();
+                    var bindingModel = bindingDataStack.getModel();
 
                     for (i = 0; i < context.children.length; i++) {
                         if( bindingModel instanceof Array ){
@@ -85,14 +85,14 @@ require.def('antie/declui/uibuilder', [ 'antie/declui/binding-parser', 'antie/de
             context.widget = uiContext.widgetFactory.createWidget(context);
 
             if( context.bind ){
-                var bindingObject = BindingParser.bindingToObject( bindingDataStack.getCurrentModel(), context.bind);
+                var bindingObject = BindingParser.bindingToObject( bindingDataStack, context.bind);
 
                 for (var binding in bindingObject) {
                     if ( bindingObject.hasOwnProperty( binding ) &&  uiContext.binders[ binding ] ) {
 
                         var binderParams = {
                           context       : context,
-                          model         : bindingDataStack.getCurrentModel(),
+                          model         : bindingDataStack.getModel(),
                           widgetFactory : uiContext.widgetFactory
                         };
 
