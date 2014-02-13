@@ -337,7 +337,10 @@ require.def('antie/application',
 			 * @returns The antie.widgets.Button which currently has focus.
 			 */
 			getFocussedWidget: function() {
-				return this._focussedWidget;
+                if (this._focussedWidget && this._focussedWidget.isFocussed()) {
+                    return this._focussedWidget;
+                }
+                return null;
 			},
 			/**
 			 * Set the currently focussed Button.

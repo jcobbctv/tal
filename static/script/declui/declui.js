@@ -35,7 +35,7 @@ require.def('antie/declui/declui',
                { model : dataModel,
                  docElement:dom.documentElement,
                  binders: this.binders,
-                 widgetFactory: WidgetFactory,
+                 widgetFactory: WidgetFactory
                }
            );
 
