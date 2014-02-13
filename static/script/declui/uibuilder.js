@@ -117,7 +117,7 @@ require.def('antie/declui/uibuilder', [ 'antie/declui/binding-parser', 'antie/de
             for (i = 0; i < context.children.length; i++) {
                 if( newBindingData ){
                     if( newBindingData instanceof Array ){
-                        UIBuilder.processContextTree( uiContext, bindingDataStack.extend( newBindingData[ i ]    ), context.children[ i ] );
+                        UIBuilder.processContextTree( uiContext, bindingDataStack.extend( newBindingData[ i ] ), context.children[ i ] );
                     }else{
                         UIBuilder.processContextTree( uiContext, bindingDataStack.extend( newBindingData ), context.children[ i ] );
                     }
