@@ -120,4 +120,46 @@
             assertEquals( null, notifiedContext );
         });
     };
+
+    this.ObservableTest.prototype.testAccessNotifyOnAccess = function(queue) {
+        queuedRequire(queue, ["antie/declui/observable", "antie/declui/pubsub", "antie/class"], function(Observable, PubSub, Class) {
+            var o = new Observable( 100 );
+            var notified;
+
+            var a = 0;
+            function accessNotifyFN( observable ){
+                notified = observable;
+                a++;
+            }
+
+            PubSub.startAccessListening( accessNotifyFN );
+            assertEquals( 100, o() );
+            PubSub.stopAccessListening();
+            assertEquals( 100, o() );
+            assertEquals( 1, a );
+            assertEquals( o, notified );
+        });
+    };
+
+    this.ObservableTest.prototype.testNoAccessNotifyOnWrite = function(queue) {
+        queuedRequire(queue, ["antie/declui/observable", "antie/declui/pubsub", "antie/class"], function(Observable, PubSub, Class) {
+            var o = new Observable( 100 );
+            var notified;
+
+            var a = 0;
+            function accessNotifyFN( observable ){
+                notified = observable;
+                a++;
+            }
+
+            PubSub.startAccessListening( accessNotifyFN );
+            o( 101 );
+            PubSub.stopAccessListening();
+            assertEquals( 101, o() );
+            assertEquals( 0, a );
+        });
+    };
+
+
+
 })();

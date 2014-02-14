@@ -1,6 +1,6 @@
 (function () {
 
-    require( ["antie/declui/observable-array", "antie/declui/observable"], function(ObservableArray, Observable ){
+    require( ["antie/declui/observable-array", "antie/declui/observable", "antie/declui/pubsub" ], function(ObservableArray, Observable, PubSub ){
         this.ObservableArrayTest = TestCase("DU.ObservableArray");
 
         this.ObservableArrayTest.prototype.setUp = function () {
@@ -260,7 +260,40 @@
             assertEquals( [ 404 ], r );
         };
 
+        this.ObservableArrayTest.prototype.testAccessNotifyOnAccess = function() {
+                var o = new ObservableArray( [ 100 ] );
+                var notified;
 
+                var a = 0;
+                function accessNotifyFN( observable ){
+                    notified = observable;
+                    a++;
+                }
 
+                PubSub.startAccessListening( accessNotifyFN );
+                assertEquals( [100], o() );
+                PubSub.stopAccessListening();
+                assertEquals( [100], o() );
+                assertEquals( 1, a );
+                assertEquals( o, notified );
+
+        };
+
+        this.ObservableArrayTest.prototype.testNoAccessNotifyOnWrite = function() {
+                var o = new ObservableArray( [ 100 ] );
+                var notified;
+
+                var a = 0;
+                function accessNotifyFN( observable ){
+                    notified = observable;
+                    a++;
+                }
+
+                PubSub.startAccessListening( accessNotifyFN );
+                o( [ 101 ] );
+                PubSub.stopAccessListening();
+                assertEquals( [101], o() );
+                assertEquals( 0, a );
+        };
     } );
 })();

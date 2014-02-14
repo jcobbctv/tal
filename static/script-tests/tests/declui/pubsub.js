@@ -184,4 +184,21 @@
             assertEquals(  cb1, o._subscribers[ 0 ].callback )
         });
     };
+
+    this.PubSubTest.prototype.testAccessNotify = function(queue) {
+        queuedRequire(queue, ["antie/declui/pubsub","antie/class"], function(PubSub, Class) {
+
+            var a = 0;
+            function accessNotify( observable ){
+                a++;
+            }
+
+            PubSub.startAccessListening( accessNotify );
+            PubSub.accessNotify();
+            assertEquals( a, 1 );
+            PubSub.stopAccessListening();
+            assertEquals( a, 1 );
+        });
+    };
+
 })();

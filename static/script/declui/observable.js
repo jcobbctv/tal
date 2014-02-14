@@ -10,6 +10,8 @@ require.def( 'antie/declui/observable',[ 'antie/declui/pubsub'],
                     value = newValue;
                     observable.value = newValue;
                     pubsub.notifySubscribers( observable );
+                }else{
+                    PubSub.accessNotify( observable );
                 }
                 return value;
             }

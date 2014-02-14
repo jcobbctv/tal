@@ -56,6 +56,20 @@ require.def('antie/declui/pubsub',[],
             }
         }
 
+        PubSub.accessNotify = function( observable ){
+            if( PubSub.accessCallbackFN ){
+                PubSub.accessCallbackFN( observable );
+            }
+        }
+
+        PubSub.startAccessListening = function( callbackFN ){
+            PubSub.accessCallbackFN = callbackFN;
+        }
+
+        PubSub.stopAccessListening  = function(){
+            PubSub.accessCallbackFN = null;
+        }
+
         return PubSub;
     }
 );
