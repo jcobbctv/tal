@@ -51,6 +51,22 @@
         });
     };
 
+    this.ObservableTest.prototype.testDependedObservableSubscribersIncreaseByOnly1 = function(queue) {
+        queuedRequire(queue, ["antie/declui/computed-observable", "antie/declui/observable", "antie/class"], function(ComputedObservable, Observable, Class) {
+
+            var a = new Observable( 101 );
+            var b = new Observable( 202 );
+
+            var o = new ComputedObservable( function(){
+                return a() + b(); } );
+
+            o();
+            o();
+
+            assertEquals( 1, a.pubsub._subscribers.length );
+        });
+    };
+
 
     this.ObservableTest.prototype.testComputedObservableNotifiesIfDependedVariableChanges = function(queue) {
         queuedRequire(queue, ["antie/declui/computed-observable", "antie/declui/observable", "antie/class"], function(ComputedObservable, Observable, Class) {
