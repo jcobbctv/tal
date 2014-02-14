@@ -10,10 +10,7 @@ require.def( 'antie/declui/computed-observable',[ 'antie/declui/pubsub'],
                 //start listening for any accessed observables
                 PubSub.startAccessListening( function( accessedObs ){
                     //if an observable is accessed then subscribe to this observable
-                    accessedObs.subscribe( function(){
-                        //on a notification that a depended observable has changed notify the subscribers to the computed observable
-                        observable.notify();
-                    });
+                    accessedObs.subscribe( observable.notify );
                 });
 
                 var rv = computeFN();
