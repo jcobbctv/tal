@@ -94,7 +94,7 @@ require.def(
                 },
                 
                 applyDefinition: function(transitionDefinition) {
-                    var transProperties, propertyParams, property, delays, durations, props, timingFns, i;
+                    var transProperties, property, delays, durations, props, timingFns, i;
                     delays = []; 
                     props = []; 
                     timingFns = []; 
@@ -121,14 +121,14 @@ require.def(
                 forceUpdate: function(property) {
                     var style = this.getComputedStyle();
                     return (style) ? style[property] : null;
-                }, 
+                },
                 
                 getStylePropertyValue: function(property) {
                     return this._element.style.getPropertyValue(property);
                 },
                 
                 setStylePropertyValue: function(property, value) {
-                    this._element.style.setProperty(property, value);
+                    this._element.style.setProperty(property, value, '');
                 },
                 
                 getComputedStyle: function() {
@@ -136,8 +136,7 @@ require.def(
                 },
                 
                 _getCssCsvPropValueAsArray: function(cssProp) {
-                    var i, value, prop, propArr, retArr;
-                    retArr = [];
+                    var value, propArr;
                     value = this._element.style.getPropertyValue(this._propMap[cssProp]);
                     
                     if(value !== null && value !== undefined) {
@@ -156,32 +155,36 @@ require.def(
                 _setProperties: function(properties) {
                     var transitionProperties;
                     transitionProperties = this._strHelper.buildCsvString(properties);
-                    this._element.style.setProperty(this._propMap["transition-property"], transitionProperties);
+                    this.setStylePropertyValue(this._propMap["transition-property"], transitionProperties);
                 },
                 
                 _setDurations: function(durations) {
                     var durationString, i;
                     for(i = 0; i !== durations.length; i += 1) {
-                        durations[i] = durations[i] + "ms";
+                        durations[i] += "ms";
                     }
                     durationString = this._strHelper.buildCsvString(durations);
-                    this._element.style.setProperty(this._propMap["transition-duration"], durationString);
+                    this.setStylePropertyValue(this._propMap["transition-duration"], durationString);
                 },
                 
                 _setDelays: function(delays) {
                     var delayString, i;
                     for(i = 0; i !== delays.length; i += 1) {
-                        delays[i] = delays[i] + "ms";
+                        delays[i] += "ms";
                     }
                     delayString = this._strHelper.buildCsvString(delays);
-                    this._element.style.setProperty(this._propMap["transition-delay"], delayString);
+                    this.setStylePropertyValue(this._propMap["transition-delay"], delayString);
                 },
                 
                 _setTimingFns: function(timings) {
                     var timingString;
                     timingString = this._strHelper.buildCsvString(timings);
-                    this._element.style.setProperty(this._propMap["transition-timing-function"], timingString);
-                }
+                    this.setStylePropertyValue(this._propMap["transition-timing-function"], timingString);
+                },
+
+				isEventTarget: function(evt) {
+					return evt.target === this._element;
+				}
             }
         );
     }

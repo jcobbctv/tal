@@ -23,6 +23,7 @@
  */
 
 (function() {
+    /* jshint newcap: false */
     this.TransitionEndPointsTest = AsyncTestCase("TransitionEndPoints");
 
     this.TransitionEndPointsTest.prototype.setUp = function() {
@@ -40,7 +41,7 @@
     function loadTEP(queue, fn) {
         queuedRequire(queue,
             [
-                'antie/devices/anim/css3/transitionendpoints'
+                'antie/devices/anim/shared/transitionendpoints'
             ],
             fn
         );
@@ -172,7 +173,7 @@
     };
     
     this.TransitionEndPointsTest.prototype.testSetFromOptionsSetsOnComplete = function(queue) {
-        var transEnds;
+        var transEnds, dummy;
         loadTEP(
             queue, 
             function(TransitionEndPoints) {
@@ -182,7 +183,7 @@
                         "someParam":    "whatever"
                     },
                     onComplete: function() {
-                        var dummy = "evaluate something";
+                        dummy = "evaluate something";
                     }
                 };
                 transEnds = new TransitionEndPoints();
@@ -243,6 +244,7 @@
     };
     
     this.TransitionEndPointsTest.prototype.testUnitsFallBackToDefaults = function(queue) {
+        var transEnds;
         loadTEP(
             queue, 
             function(TransitionEndPoints) {
@@ -415,5 +417,98 @@
                 assertFalse(transEnds.shouldSkip());  
             }
         );   
-    };        
+    };
+    
+    this.TransitionEndPointsTest.prototype.testOriginsCompletedUsingElement = function(queue) { 
+        loadTEP(
+            queue, 
+            function(TransitionEndPoints) {
+                var transEnds, options, el;
+                el = {
+                    style: {
+                        getPropertyValue: function(prop) {
+                            return el.style[prop];
+                        },
+                        top: "300px",
+                        left: "50px"
+                    }
+                };
+                
+                options = {
+                    to: {
+                        "top":    30,
+                        "left":   800
+                    }
+                };
+                
+                transEnds = new TransitionEndPoints();
+                transEnds.setFromOptions(options);
+                transEnds.completeOriginsUsingElement(el);
+                assertEquals("Top origin set from element", "300px", transEnds.getPropertyOrigin("top"));
+                assertEquals("Left origin set from element", "50px", transEnds.getPropertyOrigin("left"));  
+            }
+        );   
+    };
+    
+    this.TransitionEndPointsTest.prototype.testOriginsNotSetFromElementWhenNoDestination = function(queue) { 
+        loadTEP(
+            queue, 
+            function(TransitionEndPoints) {
+                var transEnds, options, el;
+                el = {
+                    style: {
+                        getPropertyValue: function(prop) {
+                            return el.style[prop];
+                        },
+                        top: "300px",
+                        left: "50px"
+                    }
+                };
+                
+                options = {
+                    to: {
+                        "top":    30
+                    }
+                };
+                
+                transEnds = new TransitionEndPoints();
+                transEnds.setFromOptions(options);
+                transEnds.completeOriginsUsingElement(el);
+                assertEquals("Left origin set not from element", undefined, transEnds.getPropertyOrigin("left"));  
+            }
+        );   
+    };
+    
+    this.TransitionEndPointsTest.prototype.testOriginNotOverridenByElement = function(queue) { 
+        loadTEP(
+            queue, 
+            function(TransitionEndPoints) {
+                var transEnds, options, el;
+                el = {
+                    style: {
+                        getPropertyValue: function(prop) {
+                            return el.style[prop];
+                        },
+                        top: "80px"
+                    }
+                };
+                
+                options = {
+                    to: {
+                        "top": 30
+                    },
+                    from: {
+                        "top": 50
+                    }
+                };
+                
+                transEnds = new TransitionEndPoints();
+                transEnds.setFromOptions(options);
+                transEnds.completeOriginsUsingElement(el);
+                assertEquals("Top origin overridden by element property", "50px", transEnds.getPropertyOrigin("top"));  
+            }
+        );   
+    };    
+    
+           
 }());

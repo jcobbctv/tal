@@ -35,6 +35,7 @@ require.def('antie/devices/broadcastsource/hbbtvsource',
          * Contains a HBBTV implementation of the antie broadcast TV source.
          */
         var DOM_ELEMENT_ID = 'broadcastVideoObject';
+        var ID_DVB_T = 12;
         var HbbTVSource = BaseTvSource.extend(/** @lends antie.devices.broadcastsource.HbbTVSource.prototype */ {
             /**
              * @constructor
@@ -47,14 +48,31 @@ require.def('antie/devices/broadcastsource/hbbtvsource',
                     throw new Error('Unable to initialise HbbTV broadcast source');
                 }
 
-                this._setBroadcastToFullScreen();
+                // adding as instance rather then class var as module instantiated via method
+                this._playStates = {
+                    UNREALIZED: 0,
+                    CONNECTING: 1,
+                    PRESENTING: 2,
+                    STOPPED: 3
+                };
             },
             showCurrentChannel: function () {
-                // check if exception is thrown by bindToCurrentChannel???
+                // Check if exception is thrown by bindToCurrentChannel?
+                this._setBroadcastToFullScreen();
                 this._broadcastVideoObject.bindToCurrentChannel();
+                this._broadcastVideoObject.style.display = "block";
             },
             stopCurrentChannel: function () {
+                try {
+                    if (this.getPlayState() === this._playStates.UNREALIZED) {
+                        this._broadcastVideoObject.bindToCurrentChannel();
+                    }
+                } catch(e) {
+                    throw Error("Unable to bind to current channel");
+                }
+
                 this._broadcastVideoObject.stop();
+                this._broadcastVideoObject.style.display = "none";
             },
             getCurrentChannelName: function () {
                 var channelConfig = this._broadcastVideoObject.currentChannel;
@@ -85,6 +103,78 @@ require.def('antie/devices/broadcastsource/hbbtvsource',
             destroy : function() {
                 // Not currently required for hbbtv
             },
+            setChannel : function(params) {
+                var self = this;
+                var channelType;
+
+                // TODO: Clean this up
+                // Attempt to get the channel type of the current channel
+                // If this is not available, fall back to ID_DVB_T
+                try {
+                    channelType = this._getChannelType();
+                } catch(e) {
+                    channelType = ID_DVB_T;
+                }
+                var newChannel = this._broadcastVideoObject.createChannelObject(channelType, params.onid, params.tsid, params.sid);
+                if (newChannel === null) {
+                    params.onError({
+                        name : "ChannelError",
+                        message : "Channel could not be found"
+                    });
+                    return;
+                }
+
+                // Test the that the device can access the channelList, this will be required in the future
+                try {
+                    var channelConfig = this._broadcastVideoObject.getChannelConfig();
+                    var channelList = channelConfig.channelList;
+                    var channelListCount = channelList.length;
+                } catch(e) {
+                    params.onError({
+                        name : "ChannelListError",
+                        message : "Channel list is not available"
+                    });
+                }
+
+                if (!channelListCount || channelListCount < 0) {
+                    params.onError({
+                        name : "ChannelListError",
+                        message : "Channel list is empty or not available"
+                    });
+                    return;
+                }
+
+                var successEventListener = function(channel) {
+                    self._broadcastVideoObject.removeEventListener("ChannelChangeSucceeded", successEventListener);
+                    self._broadcastVideoObject.removeEventListener("ChannelChangeError", errorEventListener);
+                    params.onSuccess();
+                };
+
+                var errorEventListener = function(channel, errorState) {
+                    self._broadcastVideoObject.removeEventListener("ChannelChangeSucceeded", successEventListener);
+                    self._broadcastVideoObject.removeEventListener("ChannelChangeError", errorEventListener);
+                    params.onError({
+                        name : "ChangeChannelError",
+                        message : "Error tuning channel"
+                    });
+                };
+
+                this._broadcastVideoObject.addEventListener("ChannelChangeSucceeded", successEventListener);
+                this._broadcastVideoObject.addEventListener("ChannelChangeError", errorEventListener);
+
+                this._broadcastVideoObject.setChannel(newChannel);
+            },
+            /**
+             * @Returns The type of identification for the channel, as indicated by one of the ID_* constants in the
+             * HBBTV specification
+             */
+            _getChannelType : function() {
+                var channelType = this._broadcastVideoObject.currentChannel.idType;
+                if (typeof channelType === "undefined") {
+                    channelType = ID_DVB_T;
+                }
+                return channelType;
+            },
             /**
              * Sets the size of the broadcast object to be the same as the required screen size identified by antie at
              * application start up.
@@ -95,8 +185,24 @@ require.def('antie/devices/broadcastsource/hbbtvsource',
             }
         });
 
-        Device.prototype.createBroadcastSource = function() {
-            return new HbbTVSource();
+        Device.prototype.isBroadcastSourceSupported = function() {
+            return this.getHistorian().hasBroadcastOrigin();
         };
+
+        /**
+         * Create a broadcastSource object on the Device to be
+         * accessed as a singleton to avoid the init being run
+         * multiple times
+         */
+        Device.prototype.createBroadcastSource = function() {
+            if (!this._broadcastSource) {
+                this._broadcastSource = new HbbTVSource();
+            }
+
+            return this._broadcastSource;
+        };
+
+        // Return the HbbtvSource object for testing purposes
+        return HbbTVSource;
     }
 );

@@ -154,6 +154,16 @@ require.def('antie/events/keyevent',
 		KeyEvent.VK_Y = 89;
 		KeyEvent.VK_Z = 90;
 
+        KeyEvent.VK_RED = 403;
+        KeyEvent.VK_GREEN = 404;
+        KeyEvent.VK_YELLOW = 405;
+        KeyEvent.VK_BLUE = 406;
+
+        KeyEvent.VK_HELP  = 156;
+        KeyEvent.VK_SEARCH = 112;
+        KeyEvent.VK_AUDIODESCRIPTION = 113;
+        KeyEvent.VK_HD = 114;
+
 		KeyEvent.VK_PLAY = 415;
 		KeyEvent.VK_PAUSE = 19;
 		KeyEvent.VK_PLAY_PAUSE = 402;

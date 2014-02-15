@@ -13,6 +13,8 @@ $params = {
 	:jtd_output     => OptionArg( "testOutput", nil ),
 	:jtd_verbose    => SwitchArg( "verbose" ),
 	:jtd_port       => OptionArg( "port", 9876 ),
+  :dev_conf_file  => PlainArg( "path_to_device_config_file", false ),
+  :url_to_conf    => PlainArg( "url_to_device_config", false ),
 	:output         => PlainArg( "testOutput", false ),
 	:coverage       => PlainArg( "coverage", false ),
 	:webdriverurl   => PlainArg( "webdriverurl", false ),
@@ -42,11 +44,12 @@ COVERAGE_FILE_NAME = "jsTestDriver.conf-coverage.dat"
 
 #jstestdriver commands
 SERVER_COMMAND     = "java -jar #{JTD_JAR_PATH} --config #{CONFIG_PATH} #{$params[ :jtd_runner_mode ]} #{$params[ :jtd_port ]}"
-TEST_COMMAND       = "java -Xmx1G -jar #{JTD_JAR_PATH} --reset #{$params[ :jtd_output ]} #{$params[ :jtd_runnerMode ] } --config #{CONFIG_PATH} #{$params[ :jtd_server ]} #{$params[ :jtd_verbose ]} #{$params[ :jtd_tests ]}"
+TEST_COMMAND       = "java -Xmx2G -jar #{JTD_JAR_PATH} --reset #{$params[ :jtd_output ]} #{$params[ :jtd_runnerMode ] } --config #{CONFIG_PATH} #{$params[ :jtd_server ]} #{$params[ :jtd_verbose ]} #{$params[ :jtd_tests ]}"
 
 $test_files		   = ''
 $jtd_config 	   = ''
 $jtd_server_pid    = 0
+$test_exit_code    = 100
 $webdriver_object  = nil
 $dirty = false
 
@@ -73,8 +76,17 @@ end
 desc "run the javascript unit tests"
 task :test do
     wait_for_browser
-    puts "[INFO] Starting Tests " + TEST_COMMAND
+
+    if( $params[ :url_to_conf ] == false && $params[ :dev_conf_file ] )
+      puts "[INFO] Starting Tests On Device ( #{$params[ :dev_conf_file ]} )\n" + TEST_COMMAND
+    elsif ( $params[ :url_to_conf ] != false )
+      puts "[INFO] Starting Tests On Device ( #{$params[ :url_to_conf ]} )\n" + TEST_COMMAND
+    else
+      puts "[INFO] Starting Tests \n" + TEST_COMMAND
+    end
+
     system( TEST_COMMAND )
+    $test_exit_code = $?.exitstatus
 end
 
 desc "Launch and navigate a browser to the jsTestDriver server."
@@ -96,10 +108,8 @@ at_exit do
     if $dirty == true
         shutDown
     end
-    
-    if ($? && $?.exited?)
-      exit($?.exitstatus)
-   end     
+
+    exit($test_exit_code)
 end
 
 #default - run the tests
@@ -112,20 +122,22 @@ end
 task :help do
 	puts "rakefile to help run unittests"
 	puts ""
-	puts "setup=<path/to/file>                   - Path to a json file that specifies any of the following options."
-	puts "runnerMode=<QUIET|DEBUG>               - Sets JsTestDriver's runnerMode option. Optional,Default: QUIET"
-	puts "tests=<REGEX>                          - Sets JsTestDriver's tests option. Optional,Default: ALL"
-	puts "testOutput=<path/to/dir>               - Sets JsTestDriver's testOutput option. Optional,Default:'' (No Output To File)"
-	puts "verbose=<1|0>                          - Sets JsTestDriver's verbose option. Optional,Default: 0"
-	puts "coverage=<1|0>                         - Turns On Coverage. Default: 0"
-	puts "webdriverurl=<chrome|url/to/webdriver> - Controls browser automation, Optional, Default: ''"
-	puts "                                         'chrome' will automate browser via chrome driver"
-	puts "                                         otherise interpreted as a URL to a webdriver instance"
-	puts "                                         default behaviour will require manual driving of the browser to capture page"
+	puts "setup=<path/to/file>                                   - Path to a json file that specifies any of the following options."
+	puts "runnerMode=<QUIET|DEBUG>                               - Sets JsTestDriver's runnerMode option. Optional,Default: QUIET"
+	puts "tests=<REGEX>                                          - Sets JsTestDriver's tests option. Optional,Default: ALL"
+	puts "testOutput=<path/to/dir>                               - Sets JsTestDriver's testOutput option. Optional,Default:'' (No Output To File)"
+	puts "verbose=<1|0>                                          - Sets JsTestDriver's verbose option. Optional,Default: 0"
+	puts "coverage=<1|0>                                         - Turns On Coverage. Default: 0"
+	puts "path_to_device_config_file=<url/to/device/config>      - Runs the tests that are only relevant to the provided device config."
+  puts "url_to_device_config=<url/to/device/config>            - Runs the tests that are only relevant to the provided device config."
+	puts "webdriverurl=<chrome|url/to/webdriver>                 - Controls browser automation, Optional, Default: ''"
+	puts "                                                         'chrome' will automate browser via chrome driver"
+	puts "                                                          otherise interpreted as a URL to a webdriver instance"
+	puts "                                                          default behaviour will require manual driving of the browser to capture page"
 	puts ""
 	puts "Examples"
-	puts "rake coverage=1                                  - runs tests with coverage but no browser autmation"
-	puts "rake testOutput=test-results webdriverurl=chrome - runs tests, automates browser via chromedriver and outputs results to file"
+	puts "rake coverage=1                                        - runs tests with coverage but no browser autmation"
+	puts "rake testOutput=test-results webdriverurl=chrome       - runs tests, automates browser via chromedriver and outputs results to file"
 end
 
 #generates list of scripts to be added to the config
@@ -149,12 +161,24 @@ end
 
 #generate prelude file
 def generate_prelude_file
-	puts "[INFO] Building Prelude File"
-	$text_prelude = $text_prelude.gsub( "${SERVER}", $params[ :server ] );
-	file = File.open( PRELUDE_PATH, "w" )
-	file.write( $text_prelude )
-	file.flush();
-	file.close();
+
+  #for testing on a device via a path to a device config this should read the config file
+  #copy in the prelude_on_device text replace the device config
+  if( $params[ :url_to_conf ] == false && $params[ :dev_conf_file ] )
+    deviceconfig = IO.read( $params[ :dev_conf_file ] );
+    $text_prelude = $text_prelude_on_device.gsub( '"${DEVICECONFIG}"', deviceconfig );
+  #if the device config is being server from and endpoint then that endpoint should have already
+  #defined window.deviceconfig so just start with text_prelude_on_device
+  elsif( $params[ :url_to_conf ] != false )
+    $text_prelude = $text_prelude_on_device;
+  end
+
+  $text_prelude = $text_prelude.gsub( "${SERVER}", $params[ :server ] );
+  file = File.open( PRELUDE_PATH, "w" )
+  file.write( $text_prelude )
+  file.flush();
+  file.close();
+
 end
 
 #generates the jstestdriver config file
@@ -162,6 +186,12 @@ def generate_jtd_config_file
 	puts "[INFO] Building JsTestDriver Config File"
 	
 	$jtd_config = $jtd_config + $jtd_template
+
+  if( $params[ :url_to_conf ] != false )
+    $jtd_config = $jtd_config.gsub( "${DYNAMICPRELUDE}", "  - " + $params[ :url_to_conf ] + "\n" );
+  else
+    $jtd_config = $jtd_config.gsub( "${DYNAMICPRELUDE}", "" )
+  end
 
 	$jtd_config = $jtd_config.gsub( "#test-block", "#test-block\n" + $test_files );
 	$jtd_config = $jtd_config.gsub( "#script-block", "#script-block\n" + $script_files ); 
@@ -203,6 +233,7 @@ end
 def wait_for_server
 	puts "[INFO] Waiting For JsTestDriver Server To Start";
 	uri = URI.parse( $params[ :server ] )
+    lastResponseCode = "0"
 
     while true
       begin
@@ -211,7 +242,10 @@ def wait_for_server
       		puts "[INFO] Server Started"
             break;
      	end
-     	puts "response = #{response.code}"
+        if( response.code != lastResponseCode )
+          lastResponseCode = response.code
+          puts "response = #{response.code}"
+        end
       rescue Timeout::Error, Errno::EINVAL, Errno::ECONNREFUSED, Errno::ECONNRESET, EOFError,
              Net::HTTPBadResponse, Net::HTTPHeaderSyntaxError, Net::ProtocolError => e
       end
@@ -228,6 +262,7 @@ def wait_for_browser
 	      	response = Net::HTTP.get_response( uri )
 	      	if( response.code == "200" )
 	        	if( !response.body().index( "Browsers: (0)" ) )
+	        		sleep( 5 );
 	        		puts "[INFO] Browser Connected"	
 	          		break;
 	        	end
@@ -261,7 +296,7 @@ def shutDown
 	puts "[INFO] Shutting Down"
 	
 	if( $webdriver_object )
-		puts "[INFO] Waiting For Chrome Driver To Quit"
+		puts "[INFO] Waiting For WebDriver To Quit"
 		begin
 			sleep( 5 )
 			$webdriver_object.quit
@@ -292,13 +327,16 @@ server: http://localhost:9876
 
 load:
 #library files
+${DYNAMICPRELUDE}
   - script-tests/prelude.js
   - script-tests/lib/require.js
   - script-tests/lib/queuedrequire.js
   - script-tests/lib/mockapplication.js
   - script-tests/lib/sinon.js
+  - script-tests/lib/ondevicetestconfigvalidate.js
   - script-tests/api/*.js
   - script-tests/mocks/*.js
+  - script-tests/fixtures/layouts/*.js
  # - script-tests/lib/css3transitions.css
  # - script-tests/lib/carousels.css
 #script-block
@@ -319,11 +357,12 @@ serve:
   - script-tests/fixtures/layouts/toobig.js
   - script-tests/fixtures/components/buttoncomponent.js
   - script-tests/fixtures/components/emptycomponent.js
+  - script-tests/fixtures/components/multipleshowcomponent.js
   - script-tests/fixtures/components/eventtestcomponent.js
 
 #plugin-block
 
-timeout: 360
+timeout: 720
 eos
 
 #the prelude file template
@@ -341,6 +380,45 @@ $text_prelude = <<-eos
 		  antie: "${SERVER}/test/script"
 	  }
 	};
+
+})();
+eos
+
+$text_prelude_on_device = <<-eos
+
+(function() {
+
+  //the device config required for the device that is being tested
+  if( !window.deviceConfig ){
+    window.deviceConfig = "${DEVICECONFIG}";
+  }
+
+  //generic device config
+	this.antie = {
+		framework: {
+			deviceConfiguration: {"modules":{"base":"antie\/devices\/browserdevice","modifiers":["antie\/devices\/anim\/styletopleft","antie\/devices\/media\/html5","antie\/devices\/data\/json2","antie\/devices\/net\/default"]},"mediasets":{"tv":"stb-all-h264","radio":"stb-aac"},"streaming":{"video":{"mediaSelectorAPI":"jsfunc","mediaSelectorURI":"https:\/\/ipsecure.stage.bbc.co.uk\/mediaselector\/4\/jsfunc\/stream\/%vpid%\/%callback%","mediaURIFormat":"%href%","supported":[{"protocols":["http"],"encodings":["h264"],"maximumBitRate":2800,"maximumVideoLines":1080}]},"audio":{"mediaSelectorAPI":"jsfunc","mediaSelectorURI":"https:\/\/ipsecure.stage.bbc.co.uk\/mediaselector\/4\/jsfunc\/stream\/%vpid%\/%callback%","mediaURIFormat":"%href%","supported":[{"protocols":["http"],"encodings":["aac"]}]}},"input":{"map":{"13":"ENTER","37":"LEFT","38":"UP","39":"RIGHT","40":"DOWN","83":"SUBTITLE","73":"INFO"}},"accessibility":{"captions":{"supported":["application\/ttaf+xml"]}},"layouts":[{"width":999999,"height":999999,"module":"fixtures\/layouts\/toobig","classes":["toobig"]},{"width":960,"height":540,"module":"fixtures\/layouts\/default","classes":["browserdevice540p"]}],"deviceConfigurationKey":"devices-html5-1","widgets":{"horizontalprogress":{"animate":false},"componentcontainer":{"fade":false},"horizontalcarousel":{"fade":true,"bindDelay":10}},"components":[]}
+		}
+	};
+
+	this.require = {
+	  baseUrl: "${SERVER}/test/script-tests",
+	  paths: {
+		  antie: "${SERVER}/test/script"
+	  }
+	};
+
+  //replace the generic device config with a specific device config - to be safe store of the layouts as these are specific to the testing harness
+  var layouts = this.antie.framework.deviceConfiguration.layouts;
+
+  //replace the generic device config with the specific device config
+	this.antie = {
+		framework: {
+			deviceConfiguration: window.deviceConfig
+		}
+	};
+
+  //but restore the layouts
+	this.antie.framework.deviceConfiguration.layouts = layouts;
 })();
 eos
 

@@ -127,4 +127,15 @@
         });
     };
 
+    this.DeviceTest.prototype.testExitToBroadcast = function(queue) {
+        expectAsserts(1);
+
+        queuedRequire(queue, ["antie/devices/device"], function(Device) {
+            var device = new Device(antie.framework.deviceConfiguration);
+            var exitStub = this.sandbox.stub(device, 'exit');
+            device.exitToBroadcast();
+            assertEquals("Default device implementation calls exit() on exitToBroadcast()", 1, exitStub.callCount);
+        });
+    };
+
 })();

@@ -23,7 +23,7 @@
  */
 
 (function() {
-    // jshint newcap: false
+    /* jshint newcap: false, onevar: false */
 	this.BrowserDeviceTest = AsyncTestCase("BrowserDevice");
 
 	this.BrowserDeviceTest.prototype.setUp = function() {
@@ -779,6 +779,83 @@
 		});
 
 	};
+	this.BrowserDeviceTest.prototype.testGetCurrentRouteIgnoresHistory = function(queue) {
+        expectAsserts(1);
+
+        queuedRequire(queue, ["antie/devices/browserdevice"], function(BrowserDevice) {
+            var device = new BrowserDevice(antie.framework.deviceConfiguration);
+            window.location.hash = "#test1/test2/test3&*history=http://www.sometest.com/test";
+            assertEquals(["test1","test2","test3"], device.getCurrentRoute());
+        });
+
+    };
+    
+    this.BrowserDeviceTest.prototype.testSetCurrentRoutePreservesHistory = function(queue) {
+        expectAsserts(1);
+
+        queuedRequire(queue, ["antie/devices/browserdevice"], function(BrowserDevice) {
+            var device = new BrowserDevice(antie.framework.deviceConfiguration);
+            window.location.hash = "#test1/test2/test3&*history=http://www.sometest.com/test";
+            device.setCurrentRoute(["test4", "test5", "test6"]);
+            assertEquals("&*history=http://www.sometest.com/test", device.getHistorian().toString());
+        });
+
+    };
+    
+    this.BrowserDeviceTest.prototype.testSetCurrentRouteWithNoHistory = function(queue) {
+        expectAsserts(1);
+
+        queuedRequire(queue, ["antie/devices/browserdevice"], function(BrowserDevice) {
+            var device = new BrowserDevice(antie.framework.deviceConfiguration);
+            window.location.hash = "#test1/test2/test3";
+            device.setCurrentRoute(["test4", "test5", "test6"]);
+            assertEquals("#test4/test5/test6", window.location.hash);
+        });
+
+    };
+    
+    this.BrowserDeviceTest.prototype.testSetCurrentRouteWithNoRouteButHistory = function(queue) {
+        expectAsserts(1);
+
+        queuedRequire(queue, ["antie/devices/browserdevice"], function(BrowserDevice) {
+            var device = new BrowserDevice(antie.framework.deviceConfiguration);
+            window.location.hash = "#test1/test2/test3&*history=http://www.test.com";
+            device.setCurrentRoute([]);
+            assertEquals("#&*history=http://www.test.com", window.location.hash);
+        });
+    };
+    
+    this.BrowserDeviceTest.prototype.testSetCurrentRouteWithNoRouteOrHistory = function(queue) {
+        expectAsserts(1);
+
+        queuedRequire(queue, ["antie/devices/browserdevice"], function(BrowserDevice) {
+            var device = new BrowserDevice(antie.framework.deviceConfiguration);
+            window.location.hash = "#test1/test2/test3";
+            device.setCurrentRoute([]);
+            assertEquals("", window.location.hash);
+        });
+    };
+    
+    this.BrowserDeviceTest.prototype.testGetHistory = function(queue) {
+        expectAsserts(1);
+
+        queuedRequire(queue, 
+            [   
+                "antie/devices/browserdevice",
+                "antie/historian"
+            ], 
+            function(BrowserDevice, Historian) {
+                var historySpy;
+                historySpy = this.sandbox.spy(Historian.prototype, 'init');
+                var device = new BrowserDevice(antie.framework.deviceConfiguration);
+                device._windowLocation = {
+                    href: "http://www.test0.com/blah/#test1/test2/test3&*history=http://www.test.com&*history=http://www.test2.com"
+                };
+                device.getHistorian();
+                assert(historySpy.calledWith("http://www.test0.com/blah/#test1/test2/test3&*history=http://www.test.com&*history=http://www.test2.com"));
+            });
+        };
+    
 	this.BrowserDeviceTest.prototype.testSetCurrentRoute = function(queue) {
 		expectAsserts(1);
 
@@ -845,6 +922,48 @@
         
         return stubs;
 	}
+
+    function stubDeviceAndGetEventSpiesForNextKey(BrowserDevice, KeyEvent, device, sandbox) {
+        "use strict";
+        var talKey, stubs;
+        stubs = {};
+        // stub out event bubbling so we can detect but it does nothing
+        device._application = {};
+        stubs.eventStub = sandbox.stub();
+        device._application.bubbleEvent = stubs.eventStub;
+        // spy on KeyEvent init so we can test which events generated
+        talKey = sandbox.spy(KeyEvent.prototype, 'init');
+        stubs.talDown = talKey.withArgs('keydown', KeyEvent.VK_NEXT);
+        stubs.talUp = talKey.withArgs('keyup', KeyEvent.VK_NEXT);
+        stubs.talPress = talKey.withArgs('keypress', KeyEvent.VK_NEXT);
+        // stub out event key map
+        sandbox.stub(device, 'getKeyMap').returns( { "425": KeyEvent.VK_NEXT } );
+        // register TAL events to DOM events
+        device.addKeyEventListener();
+
+        return stubs;
+    }
+
+    function stubDeviceAndGetEventSpiesForPrevKey(BrowserDevice, KeyEvent, device, sandbox) {
+        "use strict";
+        var talKey, stubs;
+        stubs = {};
+        // stub out event bubbling so we can detect but it does nothing
+        device._application = {};
+        stubs.eventStub = sandbox.stub();
+        device._application.bubbleEvent = stubs.eventStub;
+        // spy on KeyEvent init so we can test which events generated
+        talKey = sandbox.spy(KeyEvent.prototype, 'init');
+        stubs.talDown = talKey.withArgs('keydown', KeyEvent.VK_PREV);
+        stubs.talUp = talKey.withArgs('keyup', KeyEvent.VK_PREV);
+        stubs.talPress = talKey.withArgs('keypress', KeyEvent.VK_PREV);
+        // stub out event key map
+        sandbox.stub(device, 'getKeyMap').returns( { "424": KeyEvent.VK_PREV } );
+        // register TAL events to DOM events
+        device.addKeyEventListener();
+
+        return stubs;
+    }
 	
 	function assertCorrectTalKeyTapBehaviour(stubs) {
 	    // Key tap = quick press and release of key.
@@ -861,6 +980,20 @@
             preventDefault: function(){}
         };
 	}
+
+    function getMockDomNextKeyEvent() {
+        return {
+            keyCode: 425, // Skip forward keycode
+            preventDefault: function(){}
+        };
+    }
+
+    function getMockDomPrevKeyEvent() {
+        return {
+            keyCode: 424, // Skip Backward keycode
+            preventDefault: function(){}
+        };
+    }
 	
 	this.BrowserDeviceTest.prototype.testFirefox3OSXStyleLeftKeyTapBehaviourNormalisedCorrectly = function(queue) {
         queuedRequire(queue, 
@@ -879,7 +1012,55 @@
                 document.onkeydown(mockEvent);
                 document.onkeypress(mockEvent);
                 document.onkeyup(mockEvent);
-                
+
+                // check correct TAL behaviour
+                assertCorrectTalKeyTapBehaviour(stubs);
+            }
+        );
+    };
+
+    this.BrowserDeviceTest.prototype.testPrevKey = function(queue) {
+        queuedRequire(queue,
+            [
+                "antie/devices/browserdevice",
+                "antie/events/keyevent"
+            ],
+            function(BrowserDevice, KeyEvent) {
+                var device, stubs, mockEvent;
+
+                device = new BrowserDevice(antie.framework.deviceConfiguration);
+                stubs = stubDeviceAndGetEventSpiesForPrevKey(BrowserDevice, KeyEvent, device, this.sandbox);
+                mockEvent = getMockDomPrevKeyEvent();
+
+                // fire mock firefox 3 style events
+                document.onkeydown(mockEvent);
+                document.onkeypress(mockEvent);
+                document.onkeyup(mockEvent);
+
+                // check correct TAL behaviour
+                assertCorrectTalKeyTapBehaviour(stubs);
+            }
+        );
+    };
+
+    this.BrowserDeviceTest.prototype.testNextKey = function(queue) {
+        queuedRequire(queue,
+            [
+                "antie/devices/browserdevice",
+                "antie/events/keyevent"
+            ],
+            function(BrowserDevice, KeyEvent) {
+                var device, stubs, mockEvent;
+
+                device = new BrowserDevice(antie.framework.deviceConfiguration);
+                stubs = stubDeviceAndGetEventSpiesForNextKey(BrowserDevice, KeyEvent, device, this.sandbox);
+                mockEvent = getMockDomNextKeyEvent();
+
+                // fire mock firefox 3 style events
+                document.onkeydown(mockEvent);
+                document.onkeypress(mockEvent);
+                document.onkeyup(mockEvent);
+
                 // check correct TAL behaviour
                 assertCorrectTalKeyTapBehaviour(stubs);
             }
@@ -980,7 +1161,8 @@
                     host: 'test.invalid:12345',
                     pathname: '/testurl/',
                     hash: '#route',
-                    search: '?a=x%3Dy&b=&z'
+                    search: '?a=x%3Dy&b=&z',
+                    href: 'https://test.invalid:12345/testurl/?a=x%3Dy&b=&z#route'
                 };
                 device._windowLocation = windowLocation; 
 
@@ -990,6 +1172,63 @@
                 assertEquals('Correct pathname returned', windowLocation.pathname, getWindowLocation.pathname);
                 assertEquals('Correct hash returned', windowLocation.hash, getWindowLocation.hash);
                 assertEquals('Correct search returned', windowLocation.search, getWindowLocation.search);
+                assertEquals('Correct href returned', windowLocation.href, getWindowLocation.href);
+            }
+        );
+    };
+
+    /**
+     * Test that device.getWindowLocation() returns the full URL for location.href, even when the underlying DOM API doesn't give the right value. The scamp.
+     */
+    this.BrowserDeviceTest.prototype.testGetWindowLocationHrefCorrection = function(queue) {
+        queuedRequire(queue,
+            [
+                "antie/devices/browserdevice"
+            ],
+            function(BrowserDevice) {
+                var device = new BrowserDevice(antie.framework.deviceConfiguration);
+
+                // The 'href' value here is dodgy - it doesn't include the hash on the end
+                var windowLocation = {
+                    protocol: 'https:',
+                    host: 'test.invalid:12345',
+                    pathname: '/testurl/',
+                    hash: '#route',
+                    search: '?a=x%3Dy&b=&z',
+                    href: 'https://test.invalid:12345/testurl/?a=x%3Dy&b=&z'
+                };
+                device._windowLocation = windowLocation;
+
+                var getWindowLocation = device.getWindowLocation();
+                assertEquals('Correct href returned', 'https://test.invalid:12345/testurl/?a=x%3Dy&b=&z#route', getWindowLocation.href);
+            }
+        );
+    };
+
+    /**
+     * Test that device.getWindowLocation() returns the full URL for location.href when there is no route to append
+     */
+    this.BrowserDeviceTest.prototype.testGetWindowLocationHrefCorrectionNotOverzealous = function(queue) {
+        queuedRequire(queue,
+            [
+                "antie/devices/browserdevice"
+            ],
+            function(BrowserDevice) {
+                var device = new BrowserDevice(antie.framework.deviceConfiguration);
+
+                // Href doesn't have a hash because there is no hash
+                var windowLocation = {
+                    protocol: 'https:',
+                    host: 'test.invalid:12345',
+                    pathname: '/testurl/',
+                    hash: '#',
+                    search: '?a=x%3Dy&b=&z',
+                    href: 'https://test.invalid:12345/testurl/?a=x%3Dy&b=&z'
+                };
+                device._windowLocation = windowLocation;
+
+                var getWindowLocation = device.getWindowLocation();
+                assertEquals('Correct href returned', 'https://test.invalid:12345/testurl/?a=x%3Dy&b=&z', getWindowLocation.href);
             }
         );
     };
@@ -1001,7 +1240,7 @@
         queuedRequire(queue, 
             [
                 "antie/devices/browserdevice"
-            ], 
+            ],
             function(BrowserDevice) {
                 var device = new BrowserDevice(antie.framework.deviceConfiguration);
                 var targetUrl = 'http://example.com:55555/path/to/test.html?device=sample&config=precert&a=x%3Dy&b=&z';
@@ -1011,11 +1250,34 @@
                     assign: this.sandbox.stub()
                 };
 
-                device._windowLocation = windowLocation; 
+                device._windowLocation = windowLocation;
                 device.setWindowLocationUrl(targetUrl);
 
                 assertEquals('window.location.assign call count', 1, windowLocation.assign.callCount);
                 assertEquals('Correct URL passed through', targetUrl, windowLocation.assign.getCall(0).args[0]);
+            }
+        );
+    };
+
+    /**
+     * Test that device.setWindowLocationUrl() uses the alternative navigation approach when window.location.assign() is unavailable.
+     */
+    this.BrowserDeviceTest.prototype.testSetWindowLocationUrlAlternative = function(queue) {
+        queuedRequire(queue,
+            [
+                "antie/devices/browserdevice"
+            ],
+            function(BrowserDevice) {
+                var device = new BrowserDevice(antie.framework.deviceConfiguration);
+                var targetUrl = 'http://example.com:55555/path/to/test.html?device=sample&config=precert&a=x%3Dy&b=&z';
+
+                // window.location.assign() does not exist
+                var windowLocation = {};
+
+                device._windowLocation = windowLocation;
+                device.setWindowLocationUrl(targetUrl);
+
+                assertEquals('location.href property set', targetUrl, windowLocation.href);
             }
         );
     };

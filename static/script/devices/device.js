@@ -110,6 +110,14 @@ require.def('antie/devices/device',
                         "VOLUME_UP": KeyEvent.VK_VOLUME_UP,
                         "VOLUME_DOWN": KeyEvent.VK_VOLUME_DOWN,
                         "MUTE": KeyEvent.VK_MUTE,
+                        "RED" : KeyEvent.VK_RED,
+                        "GREEN" : KeyEvent.VK_GREEN,
+                        "YELLOW" : KeyEvent.VK_YELLOW,
+                        "BLUE" : KeyEvent.VK_BLUE,
+                        "HELP": KeyEvent.VK_HELP,
+                        "SEARCH": KeyEvent.VK_SEARCH,
+                        "AD": KeyEvent.VK_AUDIODESCRIPTION,
+                        "HD": KeyEvent.VK_HD,
                         "A": KeyEvent.VK_A,
                         "B": KeyEvent.VK_B,
                         "C": KeyEvent.VK_C,
@@ -473,6 +481,24 @@ require.def('antie/devices/device',
             showElement: function(options) {
             },
             /**
+             * -PROTECTED- Tweens a property (or properties) of an element's style from one value to another.
+             * Note fps only used by styletopleft modifier.
+             * @param {Object} options Details of the element whose style will be tweened, with parameters describing tween.
+             * @param {Element} options.el The element with a style you wish to tween.
+             * @param {Object} options.to A property: value map of the style properties you wish to tween and the numerical value of its destination, e.g { width: 30 }
+             * @param {Number} options.duration: The duration of the tween in ms
+             * @param {Object} options.from A property: value map of the style properties you wish to set at the start of the animation, e.g. { width: 0 }. If unset, the existing value will be used.
+             * @param {Boolean} [options.skipAnim] By default the tween will be animated. Set this to true for the tween to occur immediately. Any onComplete callback will still fire.
+             * @param {Function} [options.onComplete] Callback function to be called when the tween is complete.
+             * @param {String} [options.easing] Easing style for animation.
+             * @param {Object} [options.units] Units to be appended to the style values in a property -> value map. (e.g. { width: 'px' }). Defaults are set in antie.devices.anim.shared.transitionendpoints
+             * @param {Number} [options.fps] Frames per second of animation (styletopleft only)
+             * @returns {Object} A handle to animation started. This should only be used for passing to stopAnimation and nothing else should be inferred by its value. If no animation occurs, null may be returned but should not be used as an indicator.
+             */
+            tweenElementStyle: function(options){
+
+            },
+            /**
              * Stops the specified animation. The any completeHandler for the animation will be executed.
              * @param {object} anim A handle to the animation you wish to stop.
              */
@@ -529,7 +555,7 @@ require.def('antie/devices/device',
             /**
              * Get an object giving access to the current URL, query string, hash etc.
              * @returns {Object} Object containing, at a minimum, the properties:
-             * hash, host, pathname, protocol, search. These correspond to the properties
+             * hash, host, href, pathname, protocol, search. These correspond to the properties
              * in the window.location DOM API.
              * Use getCurrentAppURL(), getCurrentAppURLParams() and getCurrentRoute() to get
              * this information in a more generic way.
@@ -594,6 +620,29 @@ require.def('antie/devices/device',
             crossDomainPost: function(url, opts) {
             },
             /**
+             * Performs a cross domain GET for a decoded JSON object utilising CORS if supported by
+             * the device, falling back to a JSON-P call otherwise.
+             * @param {String} url The URL to load. A callback GET parameter will be appended if JSON-P is used.
+             * @param {Object} callbacks Object containing onSuccess and onError callbacks. onSuccess will be called
+             * with the decoded JSON object if the call is successful.
+             * @param {Object} [options] Options for the JSON-P fallback behaviour. All optional with sensible defaults.
+             * @param {Number} [options.timeout=5000] Timeout for the JSON-P call in ms. Default: 5000.
+             * @param {String} [options.id] Used in the callback function name for the JSON-P call. Default: a random string.
+             * @param {String} [options.callbackKey=callback] Key to use in query string when passing callback function name
+             * for JSON-P call. Default: callback
+             */
+            executeCrossDomainGet: function(url, callbacks, options) {
+            },
+            /**
+             * Performs a cross domain POST HTTP using CORS or the content delivered as a single form field value depending on device capability
+             * @param {String} url The URL to post to.
+             * @param {Object} data JavaScript object to be JSON encoded and delivered as payload.
+             * @param {Object} opts Object containing onLoad and onError callback functions and a fieldName property to be
+             * used for the name of the form filed if the iframe hack is used
+             */
+            executeCrossDomainPost: function(url, data, opts) {
+            },
+            /**
              * Forces the device to pre-load an image.
              * @param {String} url The URL of the image to preload.
              */
@@ -606,10 +655,16 @@ require.def('antie/devices/device',
             isHDEnabled: function() {
             },
             /**
-             * Exits the application.
+             * Exits the application directly - no history.
              */
             exit: function() {
                 throw new Error('Not supported on this device.');
+            },
+            /**
+             * Exits to broadcast if this function has been overloaded by a modifier. Otherwise, calls exit().
+             */
+            exitToBroadcast: function() {
+                this.exit();
             },
             /**
              * Get a storage provider of a given type for the specified namespace.

@@ -23,6 +23,7 @@
  */
 
 (function() {
+    /* jshint newcap: false */
     function loadTE(queue, fn) {
         queuedRequire(queue,
             [
@@ -35,7 +36,6 @@
     }
     
     function getMockPropMap(){
-        var propMap;
         return {
             "transition-property": "transition-property",
             "transition-timing-function": "transition-timing-function",
@@ -234,7 +234,7 @@
     this.TransitionElementTest.prototype.testSetStyleProperty = function(queue) {
         loadTE(queue,
             function(TransitionElement, MockElement) {
-                var transEl, value, setObj;
+                var transEl, setObj;
                 setObj = {};
                 transEl = makeNewTransElAndApplyMocks(TransitionElement, MockElement);
                 sinon.stub(transEl.mockEl.style, "setProperty", function(prop, value) {
@@ -247,7 +247,32 @@
             }
         );
     };
-    
-    
-    
+
+    this.TransitionElementTest.prototype.testIsEventOnElementTrueWhenElementTargetMatches = function(queue) {
+        loadTE(queue,
+            function(TransitionElement, MockElement) {
+                var transEl, testEvent;
+
+                transEl = makeNewTransElAndApplyMocks(TransitionElement, MockElement);
+                testEvent = {target: transEl.mockEl};
+                
+                assertTrue("isEventTarget returns true when the events target is the TransitionElements underlying DOM element", transEl.isEventTarget(testEvent));
+
+            }
+        );
+    };
+
+    this.TransitionElementTest.prototype.testIsEventOnElementFalseWhenElementTargetDoesNotMatch = function(queue) {
+        loadTE(queue,
+            function(TransitionElement, MockElement) {
+                var transEl, testEvent;
+
+                transEl = makeNewTransElAndApplyMocks(TransitionElement, MockElement);
+                testEvent = {target: new MockElement()};
+                
+                assertFalse("isEventTarget returns false when the events target is not the TransitionElements underlying DOM element", transEl.isEventTarget(testEvent));
+
+            }
+        );
+    };
 }());

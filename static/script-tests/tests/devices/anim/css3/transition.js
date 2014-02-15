@@ -23,6 +23,7 @@
  */
 
 (function() {
+    /* jshint newcap: false */
     this.TransitionTest = AsyncTestCase("Transition");
 
     this.TransitionTest.prototype.setUp = function() {
@@ -42,7 +43,7 @@
             [
                 'antie/devices/anim/css3/transition',
                 'antie/devices/anim/css3/transitiondefinition',
-                'antie/devices/anim/css3/transitionendpoints',
+                'antie/devices/anim/shared/transitionendpoints',
                 'mocks/mockelement',
                 'antie/devices/anim/css3/transitionelement'
             ],
@@ -78,11 +79,18 @@
         
         if(mockAddEventLister) {
             sinon.stub(
-                obj.element, 
+                obj.element,
                 "addEventListener",
                 function(event, callback) {
+                    function wrappedCallback() {
+                        var mockEvt = {};
+                        mockEvt.propertyName = 'top';
+                        mockEvt.target = obj.element;
+                        callback(mockEvt);
+                    }
+
                     if(typeof callback === 'function') {
-                        setTimeout(callback, 100);
+                        setTimeout(wrappedCallback, 100);
                     }
                 }
             );
@@ -92,9 +100,8 @@
     this.TransitionTest.prototype.testTransitionSetToCompleteAfterEnd = function(queue) {
         var trans, obj;
         loadT(
-            queue, 
+            queue,
             function(Transition, TransitionDefinition, TransitionEndPoints, MockElement, TransitionElement) {
-                var self, options, transDef, transEnds;
                 expectAsserts(2);
                 this.sandbox.stub(TransitionElement.prototype, 'getComputedStyle', function(){});
                 obj = {};
@@ -103,7 +110,7 @@
                 trans = new Transition(obj.tDef, obj.tEnds, obj.element);
                 assertFalse(trans._completed);
             }
-        );   
+        );
         queue.call('Wait for callback',
             function(callbacks) {
                 var checkAtEnd = callbacks.add(function() {
@@ -115,9 +122,9 @@
     };
     
     this.TransitionTest.prototype.testTransitionRemovedAfterCompletion = function(queue) {
-        var trans, existingTransDef, newTransDef, applySpy, existingProperties, obj;
+        var trans, newTransDef, applySpy, existingProperties;
         loadT(
-            queue, 
+            queue,
             function(Transition, TransitionDefinition, TransitionEndPoints, MockElement, TransitionElement) {
                 var existingTransDef, tEnds, el;
                 expectAsserts(2);
@@ -144,7 +151,7 @@
                         
                         from: {
                             newOne: 20
-                        }  
+                        }
                     }
                 );
                 
@@ -157,7 +164,8 @@
                     function(event, callback) {
                         function callbackWithArgs() {
                             callback({
-                                propertyName: "newOne"
+                                propertyName: "newOne",
+                                target: el
                             });
                         }
                         
@@ -299,7 +307,7 @@
     };
     
     this.TransitionTest.prototype.testCallingStopWithNoParamFiresCallbackAndSkipsToEnd = function(queue) {
-        var trans, obj;
+        var trans;
         loadT(
             queue, 
             function(Transition, TransitionDefinition, TransitionEndPoints, MockElement, TransitionElement) {
@@ -333,7 +341,7 @@
     };
     
     this.TransitionTest.prototype.testCallingStopWithSkipToEndFalseFiresCallbackAndSkipsToComputedValue = function(queue) {
-        var trans, obj;
+        var trans;
         loadT(
             queue, 
             function(Transition, TransitionDefinition, TransitionEndPoints, MockElement, TransitionElement) {
@@ -377,7 +385,7 @@
         loadT(
             queue, 
             function(Transition, TransitionDefinition, TransitionEndPoints, MockElement, TransitionElement) {
-                var options, endPoints, lastPropCall, el, stopSpy;
+                var trans, options, endPoints, el, stopSpy;
                 
                 this.sandbox.stub(TransitionElement.prototype, 'getComputedStyle', function(){});
                 
@@ -408,7 +416,7 @@
         loadT(
             queue, 
             function(Transition, TransitionDefinition, TransitionEndPoints, MockElement, TransitionElement) {
-                var options, endPoints, lastPropCall, el, stopSpy, transDef;
+                var options, endPoints, el, stopSpy, transDef, trans;
                 
                 this.sandbox.stub(TransitionElement.prototype, 'getComputedStyle', function(){});
                 
@@ -438,7 +446,7 @@
         loadT(
             queue, 
             function(Transition, TransitionDefinition, TransitionEndPoints, MockElement, TransitionElement) {
-                var options, endPoints, lastPropCall, el, stopSpy, transDef;
+                var options, endPoints, el, stopSpy, transDef, trans;
                 
                 this.sandbox.stub(TransitionElement.prototype, 'getComputedStyle', function(){});
                 
@@ -463,5 +471,60 @@
             }
         );
     };
-    
+
+    this.TransitionTest.prototype.testEndFnChecksEventTarget = function(queue) {
+        var targetSpy;
+        expectAsserts(1);
+        loadT(
+            queue,
+            function(Transition, TransitionDefinition, TransitionEndPoints, MockElement, TransitionElement) {
+                var options, endPoints, el, transDef, trans;
+
+                this.sandbox.stub(TransitionElement.prototype, 'getComputedStyle', function(){});
+                targetSpy = sinon.spy(TransitionElement.prototype, "isEventTarget");
+
+                options = {
+                    to: {
+                        "left": 50
+                    },
+                    from: {
+                        "left": 20
+                    },
+                    onComplete: sinon.spy()
+                };
+
+                endPoints = new TransitionEndPoints(options);
+                transDef = new TransitionDefinition();
+                transDef.setProperty("left");
+                transDef.setPropertyDuration("left", 10);
+                el = new MockElement();
+
+                sinon.stub(
+                    el,
+                    "addEventListener",
+                    function(event, callback) {
+                        function wrappedCallback() {
+                            var mockEvt = {};
+                            mockEvt.target = el;
+                            callback(mockEvt);
+                        }
+
+                        if(typeof callback === 'function') {
+                            setTimeout(wrappedCallback, 10);
+                        }
+                    }
+                );
+
+                trans = new Transition(transDef, endPoints, el);
+            }
+        );
+        queue.call('Wait for callback',
+            function(callbacks) {
+                var checkAtEnd = callbacks.add(function() {
+                    assertTrue(targetSpy.called);
+                });
+                setTimeout(checkAtEnd, 10 + 50);
+            }
+        );
+    };
 }());

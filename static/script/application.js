@@ -200,7 +200,6 @@ require.def('antie/application',
 					}
 					cssLoadedCallback();
 				} else {
-					console.log('no callback');
 					for(i = 0; i !== css.length; i += 1) {
 						this._device.loadStyleSheet(styleBaseUrl + css[i]);
 					}
@@ -413,6 +412,7 @@ require.def('antie/application',
                 var query = '';
                 var hash = '';
                 var key;
+                var completeUrl = '';
 
                 // Get existing query data, or start a brand new object if applicable.
                 var mergedData = overwrite ? {} : this.getCurrentAppURLParameters();
@@ -446,9 +446,11 @@ require.def('antie/application',
                 if (route && route.length > 0) {
                     hash = '#' + route.join('/');
                 }
-
+                
+                completeUrl = this.getDevice().getHistorian().forward(url + query + hash);
+                
                 // Send the browser to the final URL
-                this.getDevice().setWindowLocationUrl(url + query + hash);
+                this.getDevice().setWindowLocationUrl(completeUrl);
             },
             /**
              * Return the URL of the current application, with no route or query string information -
@@ -495,6 +497,40 @@ require.def('antie/application',
 			destroy: function () {
 				applicationObject = undefined;
 				ComponentContainer.destroy();
+			},
+			
+			/**
+			 * Navigates back to whatever launched the application (a parent TAL application, broadcast, or exit).
+			 */
+			back: function() {
+			    var historian = this.getDevice().getHistorian();
+			    if (historian.hasHistory()) {
+			        this.getDevice().setWindowLocationUrl(historian.back());
+			    }
+			    else {
+			        this.exit();
+			    }
+			},
+
+            /**
+             * Returns a Boolean value to indicate whether the application can go back to a parent TAL application.
+             * @returns {Boolean} True if the application can return to a parent TAL application.
+             */
+            hasHistory: function() {
+                return this.getDevice().getHistorian().hasHistory();
+            },
+
+			/**
+			 * Exits the application by using the configured exit strategy for the device, even if there is a parent TAL
+			 * application in the history stack. Will exit to broadcast if the first TAL application was launched from
+			 * broadcast and a broadcast exit modifier is loaded.
+			 */
+			exit: function() {
+                if (this.getDevice().getHistorian().hasBroadcastOrigin()) {
+                    this.getDevice().exitToBroadcast();
+                } else {
+                    this.getDevice().exit();
+                }
 			}
 		});
 
